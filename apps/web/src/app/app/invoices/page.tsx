@@ -47,24 +47,24 @@ export default function InvoicesPage() {
         actions={
           <>
             <Link href="/app/purchase-orders" className="btn-ghost">
-              Purchase orders
+              {t("invoicesPage.purchaseOrders")}
             </Link>
             <Link href="/app/suppliers" className="btn-ghost">
-              Payees
+              {t("nav.payees")}
             </Link>
             <button type="button" className="btn-dark" onClick={() => setUploadOpen(true)}>
-              New invoice
+              {t("invoicesPage.newInvoice")}
             </button>
           </>
         }
       />
 
-      <DashPanel title="Inbox">
+      <DashPanel title={t("invoicesPage.inbox")}>
         {items.length === 0 ? (
           <DashEmpty>
-            No invoices yet.{" "}
+            {t("invoicesPage.empty")}{" "}
             <button type="button" className="btn-ghost btn-sm" onClick={() => setUploadOpen(true)}>
-              Upload one
+              {t("invoicesPage.uploadOne")}
             </button>
           </DashEmpty>
         ) : (
@@ -73,8 +73,8 @@ export default function InvoicesPage() {
               <li key={inv.id}>
                 <Link href={`/app/invoices/${inv.id}`} className="dash-row !w-full">
                   <div className="dash-row-main">
-                    <strong>{inv.invoiceNumber || "Untitled"}</strong>
-                    <em>{inv.supplier?.legalName || "No supplier"}</em>
+                    <strong>{inv.invoiceNumber || t("invoicesPage.untitled")}</strong>
+                    <em>{inv.supplier?.legalName || t("invoicesPage.noSupplier")}</em>
                   </div>
                   <div className="flex flex-col items-end gap-1.5">
                     <DashStatus tone={statusTone(inv.status)}>{inv.status}</DashStatus>

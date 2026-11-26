@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api, getOrgId } from "@/lib/api";
 import { DashHeader, DashPage, DashStatus } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 function statusTone(status: string): "ok" | "wait" | "bad" | "neutral" {
   const s = status.toUpperCase();
@@ -96,6 +97,7 @@ function friendlyPayError(raw: string): PayResult {
 }
 
 export default function InvoiceDetailPage() {
+  const { t } = useI18n();
   const params = useParams<{ id: string }>();
   const [invoice, setInvoice] = useState<Record<string, unknown> | null>(null);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -473,9 +475,9 @@ export default function InvoiceDetailPage() {
       {!hasExtract ? (
         <form onSubmit={upload} className="inv-sheet">
           <div className="inv-sheet-upload-pad">
-            <p className="inv-sheet-kicker">Upload</p>
-            <h2 className="inv-sheet-title">Add an invoice file</h2>
-            <p className="inv-sheet-lead">PDF, image, or text — we extract the fields for you.</p>
+            <p className="inv-sheet-kicker">{t("invoiceDetail.uploadKicker")}</p>
+            <h2 className="inv-sheet-title">{t("invoiceDetail.addFile")}</h2>
+            <p className="inv-sheet-lead">{t("invoiceDetail.uploadLead")}</p>
           </div>
           <label className="inv-sheet-file">
             <input
@@ -483,11 +485,11 @@ export default function InvoiceDetailPage() {
               accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.json,application/pdf,image/*,application/json,text/plain"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
-            <span>{file ? file.name : "Choose file"}</span>
+            <span>{file ? file.name : t("invoiceDetail.chooseFile")}</span>
           </label>
           <div className="inv-sheet-upload-pad" style={{ paddingTop: 0 }}>
             <button className="btn-dark inv-sheet-cta" disabled={busy || !file}>
-              {busy ? "Extracting…" : "Extract"}
+              {busy ? t("invoiceDetail.extracting") : t("invoiceDetail.extract")}
             </button>
           </div>
         </form>
@@ -496,17 +498,17 @@ export default function InvoiceDetailPage() {
           <header className="inv-sheet-banner">
             <div className="inv-sheet-head">
               <div>
-                <p className="inv-sheet-kicker">Extracted invoice</p>
+                <p className="inv-sheet-kicker">{t("invoiceDetail.extracted")}</p>
                 <h2 className="inv-sheet-title">{title}</h2>
                 <p className="inv-sheet-supplier">{supplierName}</p>
               </div>
               <DashStatus tone={isVerified ? "ok" : extraction?.needsReview ? "wait" : "ok"}>
-                {isVerified ? "Verified" : extraction?.needsReview ? "Review" : "Ready"}
+                {isVerified ? t("invoiceDetail.verified") : extraction?.needsReview ? t("invoiceDetail.review") : t("invoiceDetail.ready")}
               </DashStatus>
             </div>
             <div className="inv-sheet-amount">
               <div>
-                <span>Amount due</span>
+                <span>{t("invoiceDetail.amountDue")}</span>
                 <strong>{amountDisplay}</strong>
               </div>
               <em className="inv-sheet-currency">{currency}</em>
@@ -516,27 +518,27 @@ export default function InvoiceDetailPage() {
           <div className="inv-sheet-body">
             <dl className="inv-sheet-grid">
               <div>
-                <dt>Invoice date</dt>
+                <dt>{t("invoiceDetail.invoiceDate")}</dt>
                 <dd>{invoiceDate || extraction?.invoiceDate?.value || "—"}</dd>
               </div>
               <div>
-                <dt>Due date</dt>
+                <dt>{t("invoiceDetail.dueDate")}</dt>
                 <dd>{dueDate || "—"}</dd>
               </div>
               <div>
-                <dt>Currency</dt>
+                <dt>{t("invoiceDetail.currency")}</dt>
                 <dd>{currency}</dd>
               </div>
               <div>
-                <dt>Purchase order</dt>
+                <dt>{t("invoiceDetail.purchaseOrder")}</dt>
                 <dd>{poRef || "—"}</dd>
               </div>
               <div>
-                <dt>Document</dt>
+                <dt>{t("invoiceDetail.document")}</dt>
                 <dd>{extraction?.documentKind || "invoice"}</dd>
               </div>
               <div>
-                <dt>Destination</dt>
+                <dt>{t("invoiceDetail.destination")}</dt>
                 <dd className="inv-sheet-mono" title={wallet || undefined}>
                   {shortAddr(wallet)}
                 </dd>
@@ -545,14 +547,14 @@ export default function InvoiceDetailPage() {
 
             {lineItems.length > 0 ? (
               <section className="inv-sheet-section">
-                <h3>Line items</h3>
+                <h3>{t("invoiceDetail.lineItems")}</h3>
                 <table className="inv-sheet-lines">
                   <thead>
                     <tr>
-                      <th>Description</th>
-                      <th className="is-num">Qty</th>
-                      <th className="is-num">Unit</th>
-                      <th className="is-num">Total</th>
+                      <th>{t("invoiceDetail.description")}</th>
+                      <th className="is-num">{t("invoiceDetail.qty")}</th>
+                      <th className="is-num">{t("invoiceDetail.unit")}</th>
+                      <th className="is-num">{t("invoiceDetail.total")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -571,15 +573,15 @@ export default function InvoiceDetailPage() {
 
             <div className="inv-sheet-totals">
               <div>
-                <span>Subtotal</span>
+                <span>{t("invoiceDetail.subtotal")}</span>
                 <strong>{subtotalDisplay ? money(subtotalDisplay) : amountDisplay}</strong>
               </div>
               <div>
-                <span>Tax</span>
+                <span>{t("invoiceDetail.tax")}</span>
                 <strong>{taxDisplay ? money(taxDisplay) : "—"}</strong>
               </div>
               <div className="is-grand">
-                <span>Total</span>
+                <span>{t("invoiceDetail.total")}</span>
                 <strong>
                   {amountDisplay} {currency}
                 </strong>
@@ -588,7 +590,7 @@ export default function InvoiceDetailPage() {
 
             {wallet ? (
               <div className="inv-sheet-wallet">
-                <span>Payment destination</span>
+                <span>{t("invoiceDetail.paymentDestination")}</span>
                 <code>{wallet}</code>
               </div>
             ) : null}
@@ -603,7 +605,7 @@ export default function InvoiceDetailPage() {
               }
               if (!items.length) return null;
               return (
-                <div className="flex flex-wrap gap-1.5 mt-3" aria-label="Risk signals">
+                <div className="flex flex-wrap gap-1.5 mt-3" aria-label={t("invoiceDetail.extracted")}>
                   {items.slice(0, 8).map((it, i) => (
                     <span
                       key={`${it.code || i}`}
@@ -629,13 +631,13 @@ export default function InvoiceDetailPage() {
                   disabled={!!actionBusy || busy}
                   onClick={() => void verifyInvoice()}
                 >
-                  {actionBusy === "verify" ? "Verifying…" : "Verify"}
+                  {actionBusy === "verify" ? t("invoiceDetail.verifying") : t("common.verify")}
                 </button>
               </div>
             ) : onHold ? (
               <div className="inv-sheet-foot">
                 <p className="text-sm text-mute mb-2">
-                  On-chain controls hold
+                  {t("invoiceDetail.onHold")}
                   {invoice.holdReason ? `: ${String(invoice.holdReason)}` : ""}
                 </p>
                 <button
@@ -644,7 +646,7 @@ export default function InvoiceDetailPage() {
                   disabled={!!actionBusy}
                   onClick={() => void releaseHold()}
                 >
-                  {actionBusy === "release" ? "Releasing…" : "Release hold"}
+                  {actionBusy === "release" ? t("invoiceDetail.releasing") : t("invoiceDetail.releaseHold")}
                 </button>
               </div>
             ) : (
@@ -656,13 +658,13 @@ export default function InvoiceDetailPage() {
                     disabled={!!actionBusy}
                     onClick={() => void approveInvoice()}
                   >
-                    {actionBusy === "approve" ? "Approving…" : "Approve"}
+                    {actionBusy === "approve" ? t("invoiceDetail.approving") : t("common.approve")}
                   </button>
                 ) : (
-                  <span className="inv-sheet-done">Approved</span>
+                  <span className="inv-sheet-done">{t("invoiceDetail.approved")}</span>
                 )}
                 {paidDone ? (
-                  <span className="inv-sheet-done">Paid</span>
+                  <span className="inv-sheet-done">{t("invoiceDetail.paid")}</span>
                 ) : (
                   <button
                     type="button"
@@ -670,7 +672,7 @@ export default function InvoiceDetailPage() {
                     disabled={!!actionBusy || !canPay}
                     onClick={() => void payInvoice()}
                   >
-                    {actionBusy === "pay" ? "Paying…" : "Pay"}
+                    {actionBusy === "pay" ? t("invoiceDetail.paying") : t("invoiceDetail.pay")}
                   </button>
                 )}
               </div>
@@ -684,12 +686,12 @@ export default function InvoiceDetailPage() {
           <button
             type="button"
             className="inv-pay-result-backdrop"
-            aria-label="Close"
+            aria-label={t("invoiceDetail.close")}
             onClick={() => setPayResult(null)}
           />
           <div className={`inv-pay-result is-${payResult.kind}`}>
             <p className="inv-pay-result-eyebrow">
-              {payResult.kind === "success" ? "Settled" : "Declined"}
+              {payResult.kind === "success" ? t("invoiceDetail.settled") : t("invoiceDetail.declined")}
             </p>
             <h3>{payResult.title}</h3>
             <p>{payResult.detail}</p>

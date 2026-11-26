@@ -87,12 +87,12 @@ const ALL_SCOPES = [
   "treasury:read",
 ] as const;
 
-const TABS: Array<{ id: Tab; label: string }> = [
-  { id: "workspace", label: "Workspace" },
-  { id: "developers", label: "Developers" },
-  { id: "integrations", label: "Integrations" },
-  { id: "people", label: "People" },
-  { id: "activity", label: "Activity" },
+const TABS: Array<{ id: Tab; labelKey: string }> = [
+  { id: "workspace", labelKey: "settingsPage.tabWorkspace" },
+  { id: "developers", labelKey: "settingsPage.tabDevelopers" },
+  { id: "integrations", labelKey: "settingsPage.tabIntegrations" },
+  { id: "people", labelKey: "settingsPage.tabPeople" },
+  { id: "activity", labelKey: "settingsPage.tabActivity" },
 ];
 
 function formatUsdc(minor: string) {
@@ -394,25 +394,25 @@ export default function SettingsPage() {
       <DashHeader
         eyebrow={t("pages.settingsEyebrow")}
         title={t("pages.settingsTitle")}
-        lead={t("pages.settingsLead")}
+        lead={t("settingsPage.lead")}
         actions={
           <button type="button" className="btn-dark" onClick={() => setFundOpen(true)}>
-            Fund treasury
+            {t("settingsPage.fundTreasury")}
           </button>
         }
       />
 
-      <div className="settings-tabs" role="tablist" aria-label="Settings sections">
-        {TABS.map((t) => (
+      <div className="settings-tabs" role="tablist" aria-label={t("nav.settings")}>
+        {TABS.map((tabItem) => (
           <button
-            key={t.id}
+            key={tabItem.id}
             type="button"
             role="tab"
-            aria-selected={tab === t.id}
-            className={`settings-tab${tab === t.id ? " is-active" : ""}`}
-            onClick={() => setTab(t.id)}
+            aria-selected={tab === tabItem.id}
+            className={`settings-tab${tab === tabItem.id ? " is-active" : ""}`}
+            onClick={() => setTab(tabItem.id)}
           >
-            {t.label}
+            {t(tabItem.labelKey)}
           </button>
         ))}
       </div>
@@ -426,40 +426,40 @@ export default function SettingsPage() {
       {tab === "workspace" ? (
         <>
           <div className="dash-grid is-2">
-            <DashPanel title="Organization">
+            <DashPanel title={t("settingsPage.organization")}>
               <div className="dash-panel-body space-y-3">
                 <div className="dash-stat">
-                  <span>Legal name</span>
+                  <span>{t("settingsPage.legalName")}</span>
                   <strong className="!text-base">{org?.legalName || "—"}</strong>
                 </div>
                 <div className="dash-stat">
-                  <span>Status</span>
+                  <span>{t("settingsPage.status")}</span>
                   <strong className="!text-base">{org?.status || "—"}</strong>
                 </div>
                 <div className="dash-stat">
-                  <span>On-chain org</span>
+                  <span>{t("settingsPage.onChainOrg")}</span>
                   <em className="!font-mono !text-[11px]">
                     {org?.treasuryConfig?.onChainOrgId || org?.onChainOrgId || "—"}
                   </em>
                 </div>
               </div>
             </DashPanel>
-            <DashPanel title="Settlement network">
+            <DashPanel title={t("settingsPage.settlementNetwork")}>
               <div className="dash-panel-body space-y-3">
                 <div className="dash-stat">
-                  <span>Mode</span>
+                  <span>{t("settingsPage.mode")}</span>
                   <strong className="!text-base !font-mono">{network?.settlementMode || "—"}</strong>
                 </div>
                 <div className="dash-stat">
-                  <span>X Layer</span>
-                  <strong className="!text-base">Chain {network?.chainId ?? "—"}</strong>
+                  <span>{t("settingsPage.xLayer")}</span>
+                  <strong className="!text-base">{t("settingsPage.chain")} {network?.chainId ?? "—"}</strong>
                 </div>
                 <div className="dash-stat">
-                  <span>USDC</span>
+                  <span>{t("settingsPage.usdc")}</span>
                   <em className="!font-mono !text-[11px]">{short(network?.usdc)}</em>
                 </div>
                 <div className="dash-stat">
-                  <span>Authorization</span>
+                  <span>{t("settingsPage.authorization")}</span>
                   <em className="!font-mono !text-[11px]">
                     {short(network?.contracts.paymentAuthorization)}
                   </em>
@@ -467,20 +467,20 @@ export default function SettingsPage() {
               </div>
             </DashPanel>
           </div>
-          <DashPanel title="Treasury">
+          <DashPanel title={t("settingsPage.treasury")}>
             <div className="dash-grid is-3" style={{ padding: "1.1rem" }}>
               <div className="dash-stat">
-                <span>Funding wallet</span>
+                <span>{t("settingsPage.fundingWallet")}</span>
                 <em className="!font-mono !text-xs">{short(treasury?.fundingWalletAddress)}</em>
               </div>
               <div className="dash-stat">
-                <span>Wallet USDC</span>
+                <span>{t("settingsPage.walletUsdc")}</span>
                 <strong>
                   {treasury ? formatUsdc(treasury.balances.fundingWalletUsdcMinor) : "—"}
                 </strong>
               </div>
               <div className="dash-stat">
-                <span>Vault USDC</span>
+                <span>{t("settingsPage.vaultUsdc")}</span>
                 <strong>
                   {treasury ? formatUsdc(treasury.balances.vaultAvailableUsdcMinor) : "—"}
                 </strong>
@@ -497,14 +497,14 @@ export default function SettingsPage() {
 
       {tab === "developers" ? (
         <div className="dash-grid is-2">
-          <DashPanel title="Partner API keys">
+          <DashPanel title={t("settingsPage.partnerKeys")}>
             <form onSubmit={createKey} className="dash-form" style={{ padding: "1rem" }}>
               <div>
-                <label className="label">Name</label>
+                <label className="label">{t("settingsPage.name")}</label>
                 <input className="input" value={keyName} onChange={(e) => setKeyName(e.target.value)} />
               </div>
               <div>
-                <label className="label">Scopes</label>
+                <label className="label">{t("settingsPage.scopes")}</label>
                 <div className="flex flex-col gap-1 text-sm mt-1 max-h-40 overflow-auto">
                   {ALL_SCOPES.map((s) => (
                     <label key={s} className="flex items-center gap-2 font-mono text-xs">
@@ -524,7 +524,7 @@ export default function SettingsPage() {
               </div>
               <div className="dash-form-actions">
                 <button type="submit" className="btn-dark" disabled={busy || scopes.length === 0}>
-                  {busy ? "Creating…" : "Generate key"}
+                  {busy ? t("common.working") : t("settingsPage.generateKey")}
                 </button>
               </div>
               {rawKey ? (
@@ -541,7 +541,7 @@ export default function SettingsPage() {
                       setTimeout(() => setCopied(false), 1500);
                     }}
                   >
-                    {copied ? "Copied" : "Copy key"}
+                    {copied ? t("common.copied") : t("common.copy")}
                   </button>
                   {probe ? <p className="text-xs text-mute">{probe}</p> : null}
                   <pre className="text-[11px] font-mono whitespace-pre-wrap text-mute bg-soft p-3 rounded-md border border-line">
@@ -556,7 +556,7 @@ export default function SettingsPage() {
               )}
             </form>
             {apiKeys.length === 0 ? (
-              <DashEmpty>No API keys yet. Generate one to use the Partner API or CLI.</DashEmpty>
+              <DashEmpty>{t("settingsPage.noApiKeys")}</DashEmpty>
             ) : (
               <ul className="dash-list">
                 {apiKeys.map((k) => (
@@ -581,10 +581,10 @@ export default function SettingsPage() {
             )}
           </DashPanel>
 
-          <DashPanel title="Webhooks">
+          <DashPanel title={t("settingsPage.webhooks")}>
             <form onSubmit={createWebhook} className="dash-form" style={{ padding: "1rem" }}>
               <div>
-                <label className="label">Endpoint URL</label>
+                <label className="label">{t("settingsPage.endpointUrl")}</label>
                 <input
                   className="input"
                   placeholder="https://hooks.example.com/avenza"
@@ -599,7 +599,7 @@ export default function SettingsPage() {
               </p>
               <div className="dash-form-actions">
                 <button type="submit" className="btn-dark" disabled={busy}>
-                  Add webhook
+                  {t("settingsPage.addWebhook")}
                 </button>
               </div>
               {hookSecret ? (
@@ -609,7 +609,7 @@ export default function SettingsPage() {
               ) : null}
             </form>
             {webhooks.length === 0 ? (
-              <DashEmpty>No webhooks configured.</DashEmpty>
+              <DashEmpty>{t("settingsPage.noWebhooks")}</DashEmpty>
             ) : (
               <ul className="dash-list">
                 {webhooks.map((w) => (
@@ -636,10 +636,10 @@ export default function SettingsPage() {
       {tab === "integrations" ? (
         <>
           <div className="dash-grid is-2">
-            <DashPanel title="Connect Odoo / ERPNext">
+            <DashPanel title={t("settingsPage.connectErp")}>
               <form onSubmit={connectErp} className="dash-form" style={{ padding: "1rem" }}>
                 <div>
-                  <label className="label">Provider</label>
+                  <label className="label">{t("settingsPage.provider")}</label>
                   <select
                     className="input"
                     value={provider}
@@ -650,7 +650,7 @@ export default function SettingsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="label">Base URL</label>
+                  <label className="label">{t("settingsPage.baseUrl")}</label>
                   <input
                     className="input"
                     required
@@ -662,15 +662,15 @@ export default function SettingsPage() {
                 {provider === "odoo" ? (
                   <>
                     <div>
-                      <label className="label">Database</label>
+                      <label className="label">{t("settingsPage.database")}</label>
                       <input className="input" value={db} onChange={(e) => setDb(e.target.value)} />
                     </div>
                     <div>
-                      <label className="label">Login</label>
+                      <label className="label">{t("settingsPage.login")}</label>
                       <input className="input" value={login} onChange={(e) => setLogin(e.target.value)} />
                     </div>
                     <div>
-                      <label className="label">Password</label>
+                      <label className="label">{t("settingsPage.password")}</label>
                       <input
                         className="input"
                         type="password"
@@ -682,7 +682,7 @@ export default function SettingsPage() {
                 ) : (
                   <>
                     <div>
-                      <label className="label">API key</label>
+                      <label className="label">{t("settingsPage.apiKey")}</label>
                       <input
                         className="input"
                         type="password"
@@ -691,7 +691,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="label">API secret</label>
+                      <label className="label">{t("settingsPage.apiSecret")}</label>
                       <input
                         className="input"
                         type="password"
@@ -712,9 +712,9 @@ export default function SettingsPage() {
                 </div>
               </form>
             </DashPanel>
-            <DashPanel title="Active connectors">
+            <DashPanel title={t("settingsPage.activeConnectors")}>
               {conns.length === 0 ? (
-                <DashEmpty>No ERP connectors yet.</DashEmpty>
+                <DashEmpty>{t("settingsPage.noConnectors")}</DashEmpty>
               ) : (
                 <ul className="dash-list">
                   {conns.map((c) => (
@@ -758,7 +758,7 @@ export default function SettingsPage() {
 
       {tab === "people" ? (
         <div className="dash-grid is-2">
-          <DashPanel title="Invite">
+          <DashPanel title={t("settingsPage.invite")}>
             <form
               className="dash-form"
               style={{ padding: "1rem" }}
@@ -791,20 +791,20 @@ export default function SettingsPage() {
               }}
             >
               <div>
-                <label className="label">Email</label>
+                <label className="label">{t("settingsPage.email")}</label>
                 <input className="input" name="email" type="email" required />
               </div>
               <div>
-                <label className="label">Full name</label>
+                <label className="label">{t("settingsPage.fullName")}</label>
                 <input className="input" name="fullName" required />
               </div>
               <div>
-                <label className="label">Role</label>
+                <label className="label">{t("settingsPage.role")}</label>
                 <select className="input" name="role" defaultValue="approver">
-                  <option value="admin">Admin</option>
-                  <option value="approver">Approver</option>
-                  <option value="payer">Payer</option>
-                  <option value="auditor">Auditor</option>
+                  <option value="admin">{t("settingsPage.roleAdmin")}</option>
+                  <option value="approver">{t("settingsPage.roleApprover")}</option>
+                  <option value="payer">{t("settingsPage.rolePayer")}</option>
+                  <option value="auditor">{t("settingsPage.roleAuditor")}</option>
                 </select>
               </div>
               <div className="dash-form-actions">
@@ -814,9 +814,9 @@ export default function SettingsPage() {
               </div>
             </form>
           </DashPanel>
-          <DashPanel title="Team">
+          <DashPanel title={t("settingsPage.team")}>
             {members.length === 0 ? (
-              <DashEmpty>No members loaded.</DashEmpty>
+              <DashEmpty>{t("settingsPage.noMembers")}</DashEmpty>
             ) : (
               <ul className="dash-list">
                 {members.map((m) => (
@@ -837,9 +837,9 @@ export default function SettingsPage() {
       ) : null}
 
       {tab === "activity" ? (
-        <DashPanel title="Audit trail">
+        <DashPanel title={t("settingsPage.auditTrail")}>
           {audit.length === 0 ? (
-            <DashEmpty>No recent events.</DashEmpty>
+            <DashEmpty>{t("settingsPage.noEvents")}</DashEmpty>
           ) : (
             <ul className="dash-list">
               {audit.map((a) => (

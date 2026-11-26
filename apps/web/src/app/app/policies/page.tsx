@@ -195,77 +195,77 @@ export default function PoliciesPage() {
       <DashHeader
         eyebrow={t("pages.controlsEyebrow")}
         title={t("pages.controlsTitle")}
-        lead={t("pages.controlsLead")}
+        lead={t("controlsPage.lead")}
       />
 
       {network ? (
         <div className="dash-grid is-3">
           <div className="dash-stat">
-            <span>Settlement</span>
+            <span>{t("controlsPage.settlement")}</span>
             <strong className="!text-base !font-mono">{network.settlementMode}</strong>
           </div>
           <div className="dash-stat">
-            <span>Circuit</span>
+            <span>{t("controlsPage.circuit")}</span>
             <strong className="!text-base !font-mono">#{network.tapeOut.paymentLimitCircuitId}</strong>
           </div>
           <div className="dash-stat">
             <span>Processor</span>
             <em>
               <a href={network.tapeOut.explorerProcessor} target="_blank" rel="noreferrer" className="underline">
-                Open explorer
+                {t("controlsPage.openExplorer")}
               </a>
             </em>
           </div>
         </div>
       ) : null}
 
-      <DashPanel title="On-chain AP controls">
+      <DashPanel title={t("controlsPage.onChainAp")}>
         <div className="mb-3 flex flex-wrap gap-2">
           <button type="button" className="btn-ghost btn-sm" onClick={() => applyRules(STRICT)}>
-            Apply Strict preset
+            {t("controlsPage.applyStrict")}
           </button>
           <span className="text-xs text-mute self-center">
-            Strict: $500 auto · dual above $5k · PO required · all holds on
+            {t("controlsPage.strictHint")}
           </span>
         </div>
         <form onSubmit={onPublishControls} className="dash-form is-2">
           <div>
-            <label className="label">Auto-approve max (USDC)</label>
+            <label className="label">{t("controlsPage.autoApproveMax")}</label>
             <input className="input" value={autoMax} onChange={(e) => setAutoMax(e.target.value)} />
           </div>
           <div>
-            <label className="label">Single approver max (USDC)</label>
+            <label className="label">{t("controlsPage.singleApproverMax")}</label>
             <input className="input" value={singleMax} onChange={(e) => setSingleMax(e.target.value)} />
           </div>
           <div>
-            <label className="label">Dual-control above (USDC)</label>
+            <label className="label">{t("controlsPage.dualControlAbove")}</label>
             <input className="input" value={dualAbove} onChange={(e) => setDualAbove(e.target.value)} />
           </div>
           <div>
-            <label className="label">Min confidence (bps)</label>
+            <label className="label">{t("controlsPage.minConfidence")}</label>
             <input className="input" value={minConf} onChange={(e) => setMinConf(e.target.value)} />
           </div>
           <div className="flex flex-col gap-2 justify-end text-sm">
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={holdNew} onChange={(e) => setHoldNew(e.target.checked)} />
-              Hold new vendor
+              {t("controlsPage.holdNewVendor")}
             </label>
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={holdDup} onChange={(e) => setHoldDup(e.target.checked)} />
-              Hold duplicates
+              {t("controlsPage.holdDuplicates")}
             </label>
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={holdDest} onChange={(e) => setHoldDest(e.target.checked)} />
-              Hold unknown / changed wallet
+              {t("controlsPage.holdUnknownWallet")}
             </label>
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={requirePo} onChange={(e) => setRequirePo(e.target.checked)} />
-              Require PO match
+              {t("controlsPage.requirePo")}
             </label>
           </div>
           <div className="dash-form-actions">
             <button className="btn-dark" type="submit">
-              Publish to ControlsRegistry
+              {t("controlsPage.publishControls")}
             </button>
           </div>
           {controls ? (
@@ -279,9 +279,9 @@ export default function PoliciesPage() {
         </form>
       </DashPanel>
 
-      <DashPanel title="Controls version history">
+      <DashPanel title={t("controlsPage.history")}>
         {history.length === 0 ? (
-          <DashEmpty>No published controls yet.</DashEmpty>
+          <DashEmpty>{t("controlsPage.historyEmpty")}</DashEmpty>
         ) : (
           <ul className="dash-list">
             {history.map((h) => {
@@ -296,17 +296,17 @@ export default function PoliciesPage() {
                   <div className="dash-row-main">
                     <strong>
                       v{h.version}
-                      {h.active ? " · active" : ""}
+                      {h.active ? ` · ${t("controlsPage.active")}` : ""}
                     </strong>
                     <em>
                       {rules
                         ? `auto ≤$${rules.autoApproveMaxUsdc} · dual >$${rules.dualControlAboveUsdc}`
                         : h.configHash.slice(0, 12)}
-                      {h.onChainTxHash ? ` · ${h.onChainTxHash.slice(0, 14)}…` : " · local"}
+                      {h.onChainTxHash ? ` · ${h.onChainTxHash.slice(0, 14)}…` : ` · ${t("controlsPage.local")}`}
                     </em>
                   </div>
                   <div className="flex items-center gap-2">
-                    {h.active ? <DashStatus tone="ok">live</DashStatus> : <DashStatus>archived</DashStatus>}
+                    {h.active ? <DashStatus tone="ok">{t("controlsPage.live")}</DashStatus> : <DashStatus>{t("controlsPage.archived")}</DashStatus>}
                     <button
                       type="button"
                       className="home-chip"
@@ -314,7 +314,7 @@ export default function PoliciesPage() {
                         if (rules) applyRules(rules);
                       }}
                     >
-                      Load
+                      {t("controlsPage.load")}
                     </button>
                   </div>
                 </li>
@@ -324,14 +324,14 @@ export default function PoliciesPage() {
         )}
       </DashPanel>
 
-      <DashPanel title="Publish TapeOut spend policy">
+      <DashPanel title={t("controlsPage.publishTapeout")}>
         <form onSubmit={onCreate} className="dash-form is-2">
           <div>
-            <label className="label">Policy name</label>
+            <label className="label">{t("controlsPage.policyName")}</label>
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <label className="label">Per-payment limit (minor)</label>
+            <label className="label">{t("controlsPage.perPaymentLimit")}</label>
             <input
               className="input font-mono text-xs"
               value={perPayment}
@@ -339,7 +339,7 @@ export default function PoliciesPage() {
             />
           </div>
           <div>
-            <label className="label">Daily limit (minor)</label>
+            <label className="label">{t("controlsPage.dailyLimit")}</label>
             <input
               className="input font-mono text-xs"
               value={daily}
@@ -347,7 +347,7 @@ export default function PoliciesPage() {
             />
           </div>
           <div>
-            <label className="label">Processor</label>
+            <label className="label">{t("controlsPage.processor")}</label>
             <input
               className="input font-mono text-xs"
               value={processor}
@@ -355,20 +355,20 @@ export default function PoliciesPage() {
             />
           </div>
           <div>
-            <label className="label">Circuit id</label>
+            <label className="label">{t("controlsPage.circuitId")}</label>
             <input className="input" value={circuitId} onChange={(e) => setCircuitId(e.target.value)} />
           </div>
           <div className="dash-form-actions">
             <button className="btn-dark" type="submit">
-              Publish spend policy
+              {t("controlsPage.publishSpend")}
             </button>
           </div>
         </form>
       </DashPanel>
 
-      <DashPanel title="TapeOut policy versions">
+      <DashPanel title={t("controlsPage.tapeoutVersions")}>
         {items.length === 0 ? (
-          <DashEmpty>No spend policies yet.</DashEmpty>
+          <DashEmpty>{t("controlsPage.noSpendPolicies")}</DashEmpty>
         ) : (
           <ul className="dash-list">
             {items.map((p) => (

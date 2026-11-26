@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { api, getOrgId } from "@/lib/api";
 import { DashEmpty, DashHeader, DashPage, DashPanel } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type PO = {
   id: string;
@@ -25,6 +26,7 @@ function formatUsdc(minor: string) {
 
 /** Kept for deep links from invoices — not in primary nav */
 export default function PurchaseOrdersPage() {
+  const { t } = useI18n();
   const [items, setItems] = useState<PO[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [number, setNumber] = useState("");
@@ -72,25 +74,25 @@ export default function PurchaseOrdersPage() {
   return (
     <DashPage>
       <DashHeader
-        eyebrow="Supporting"
-        title="Purchase orders"
-        lead="Optional PO matching for controls. Primary invoice work stays in Invoices."
+        eyebrow={t("purchaseOrdersPage.eyebrow")}
+        title={t("purchaseOrdersPage.title")}
+        lead={t("purchaseOrdersPage.lead")}
         actions={
           <Link href="/app/invoices" className="btn-ghost">
-            Back to invoices
+            {t("purchaseOrdersPage.backToInvoices")}
           </Link>
         }
       />
-      <DashPanel title="Register PO">
+      <DashPanel title={t("purchaseOrdersPage.register")}>
         <form onSubmit={onCreate} className="dash-form is-3">
           <div>
-            <label className="label">PO number</label>
+            <label className="label">{t("purchaseOrdersPage.poNumber")}</label>
             <input className="input" value={number} onChange={(e) => setNumber(e.target.value)} required />
           </div>
           <div>
-            <label className="label">Supplier</label>
+            <label className="label">{t("common.supplier")}</label>
             <select className="input" value={supplierId} onChange={(e) => setSupplierId(e.target.value)} required>
-              <option value="">Select…</option>
+              <option value="">{t("purchaseOrdersPage.selectSupplier")}</option>
               {suppliers.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.legalName}
@@ -99,18 +101,18 @@ export default function PurchaseOrdersPage() {
             </select>
           </div>
           <div>
-            <label className="label">Amount (USDC)</label>
+            <label className="label">{t("common.amountUsdc")}</label>
             <input className="input" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
           </div>
           <div className="dash-form-actions dash-span-3">
-            <button className="btn-dark">Create</button>
+            <button className="btn-dark">{t("common.create")}</button>
           </div>
           {msg ? <p className="text-sm text-mute dash-span-3">{msg}</p> : null}
         </form>
       </DashPanel>
-      <DashPanel title="Open POs">
+      <DashPanel title={t("purchaseOrdersPage.openPos")}>
         {items.length === 0 ? (
-          <DashEmpty>No purchase orders.</DashEmpty>
+          <DashEmpty>{t("purchaseOrdersPage.empty")}</DashEmpty>
         ) : (
           <ul className="dash-list">
             {items.map((p) => (

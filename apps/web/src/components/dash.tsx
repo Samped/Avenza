@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect } from "react";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 import { createPortal } from "react-dom";
 
 export function DashPage({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -81,6 +82,7 @@ export function DashModal({
   children: ReactNode;
   wide?: boolean;
 }) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -99,11 +101,11 @@ export function DashModal({
 
   return createPortal(
     <div className="dash-modal-root" role="dialog" aria-modal="true" aria-label={title}>
-      <button type="button" className="dash-modal-backdrop" aria-label="Close" onClick={onClose} />
+      <button type="button" className="dash-modal-backdrop" aria-label={t("common.close")} onClick={onClose} />
       <div className={`dash-modal${wide ? " is-wide" : ""}`}>
         <div className="dash-modal-head">
           <h2>{title}</h2>
-          <button type="button" className="dash-modal-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="dash-modal-close" onClick={onClose} aria-label={t("common.close")}>
             ×
           </button>
         </div>

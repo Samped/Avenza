@@ -144,18 +144,18 @@ export default function ApprovalsPage() {
       <DashHeader
         eyebrow={t("pages.approvalsEyebrow")}
         title={t("pages.approvalsTitle")}
-        lead={t("pages.approvalsLead")}
+        lead={t("approvalsPage.lead")}
         actions={
           <Link href="/app/invoices" className="btn-ghost">
-            Invoices
+            {t("nav.invoices")}
           </Link>
         }
       />
 
-      <DashPanel title="Verified — submit for approval">
+      <DashPanel title={t("approvalsPage.verifiedSubmit")}>
         {verified.length === 0 ? (
           <DashEmpty>
-            No verified invoices waiting. <Link href="/app/invoices">Review inbox</Link>
+            {t("approvalsPage.noVerified")} <Link href="/app/invoices">{t("approvalsPage.reviewInbox")}</Link>
           </DashEmpty>
         ) : (
           <ul className="dash-list">
@@ -197,13 +197,13 @@ export default function ApprovalsPage() {
       </DashPanel>
 
       <div className="dash-grid is-2">
-        <DashPanel title="Submit by id">
+        <DashPanel title={t("approvalsPage.submitById")}>
           <div className="dash-form">
             <div>
-              <label className="label">Verified invoice UUID</label>
+              <label className="label">{t("approvalsPage.invoiceUuid")}</label>
               <input
                 className="input font-mono text-xs"
-                placeholder="Invoice id"
+                placeholder={t("approvalsPage.invoiceIdPlaceholder")}
                 value={invoiceId}
                 onChange={(e) => setInvoiceId(e.target.value)}
               />
@@ -216,10 +216,10 @@ export default function ApprovalsPage() {
           </div>
         </DashPanel>
 
-        <DashPanel title="Approval policy tiers">
+        <DashPanel title={t("approvalsPage.policyTiers")}>
           <form onSubmit={savePolicy} className="dash-form">
             <div>
-              <label className="label">Policy name</label>
+              <label className="label">{t("approvalsPage.policyName")}</label>
               <input className="input" value={policyName} onChange={(e) => setPolicyName(e.target.value)} />
             </div>
             <div className="dash-grid is-3" style={{ gap: "0.65rem" }}>
@@ -236,9 +236,9 @@ export default function ApprovalsPage() {
                 <input className="input" type="number" min={1} max={10} value={tierHigh} onChange={(e) => setTierHigh(e.target.value)} />
               </div>
             </div>
-            <p className="text-xs text-mute">New suppliers add an extra signature on mid/high tiers.</p>
+            <p className="text-xs text-mute">{t("approvalsPage.newSupplierHint")}</p>
             <div className="dash-form-actions">
-              <button className="btn-dark">Publish tiers</button>
+              <button className="btn-dark">{t("approvalsPage.publishTiers")}</button>
             </div>
           </form>
           {policies[0] ? (
@@ -256,9 +256,9 @@ export default function ApprovalsPage() {
         </p>
       ) : null}
 
-      <DashPanel title="Queue">
+      <DashPanel title={t("approvalsPage.queue")}>
         {items.length === 0 ? (
-          <DashEmpty>Nothing waiting. Strong position.</DashEmpty>
+          <DashEmpty>{t("approvalsPage.queueEmpty")}</DashEmpty>
         ) : (
           <ul className="dash-list">
             {items.map((r) => (

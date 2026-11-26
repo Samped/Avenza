@@ -457,13 +457,13 @@ export default function PaymentsPage() {
       <div className="pay-statusbar">
         <div className="pay-status-pill">
           <span className={`pay-dot${onchain ? " is-live" : ""}`} />
-          <strong>{onchain ? "Live" : "Blocked"}</strong>
+          <strong>{onchain ? t("paymentsPage.live") : t("paymentsPage.blocked")}</strong>
           <em>X Layer {network?.chainId ?? "—"}</em>
         </div>
         <div className="pay-status-meta">
-          <span>{ready.length} ready</span>
+          <span>{ready.length} {t("paymentsPage.ready")}</span>
           <span>·</span>
-          <span>{items.length} settled</span>
+          <span>{items.length} {t("paymentsPage.settled")}</span>
           {network ? (
             <>
               <span>·</span>
@@ -476,7 +476,7 @@ export default function PaymentsPage() {
             <>
               <span>·</span>
               <span>
-                Fees {network.fees.platformFeeBps ?? 0} bps
+                {t("paymentsPage.feesLabel")} {network.fees.platformFeeBps ?? 0} bps
                 {network.fees.gasRecoveryUsdcMinor
                   ? ` + gas ${Number(network.fees.gasRecoveryUsdcMinor) / 1e6} USDC`
                   : ""}
@@ -490,14 +490,14 @@ export default function PaymentsPage() {
 
       <div className="pay-layout">
         <section className="pay-compose">
-          <div className="pay-modes" role="tablist" aria-label="Payment type">
+          <div className="pay-modes" role="tablist" aria-label={t("paymentsPage.modeDirect")}>
             {(
               [
-                ["invoice", "Invoice", ready.length],
-                ["direct", "Direct", null],
-                ["group", "Group", batches.length || null],
+                ["invoice", "paymentsPage.modeInvoice", ready.length],
+                ["direct", "paymentsPage.modeDirect", null],
+                ["group", "paymentsPage.modeGroup", batches.length || null],
               ] as const
-            ).map(([id, label, count]) => (
+            ).map(([id, labelKey, count]) => (
               <button
                 key={id}
                 type="button"
@@ -506,7 +506,7 @@ export default function PaymentsPage() {
                 className={`pay-mode${mode === id ? " is-active" : ""}`}
                 onClick={() => setMode(id)}
               >
-                {label}
+                {t(labelKey)}
                 {typeof count === "number" && count > 0 ? <i>{count}</i> : null}
               </button>
             ))}
@@ -516,7 +516,7 @@ export default function PaymentsPage() {
             {mode === "invoice" ? (
               ready.length === 0 ? (
                 <DashEmpty>
-                  No approved invoices. <Link href="/app/approvals">Open approvals</Link>
+                  {t("paymentsPage.noApproved")} <Link href="/app/approvals">{t("paymentsPage.openApprovals")}</Link>
                 </DashEmpty>
               ) : (
                 <ul className="pay-queue">
@@ -529,7 +529,7 @@ export default function PaymentsPage() {
                           </Link>
                         </strong>
                         <em>
-                          {inv.supplier?.legalName || "Payee"} · {formatUsdc(inv.totalAmountMinor)} USDC
+                          {inv.supplier?.legalName || t("paymentsPage.payee")} · {formatUsdc(inv.totalAmountMinor)} USDC
                         </em>
                       </div>
                       <button
@@ -538,7 +538,7 @@ export default function PaymentsPage() {
                         disabled={busyId === inv.id || !onchain}
                         onClick={() => void settleInvoice(inv)}
                       >
-                        {busyId === inv.id ? "Settling…" : "Settle"}
+                        {busyId === inv.id ? t("paymentsPage.settling") : t("paymentsPage.settle")}
                       </button>
                     </li>
                   ))}
@@ -549,7 +549,7 @@ export default function PaymentsPage() {
             {mode === "direct" ? (
               <div className="pay-form">
                 <div>
-                  <label className="label">Address</label>
+                  <label className="label">{t("common.address")}</label>
                   <input
                     className="input"
                     value={directAddress}
@@ -560,7 +560,7 @@ export default function PaymentsPage() {
                 </div>
                 <div>
                   <label className="label">
-                    Client <em className="payout-optional">optional</em>
+                    {t("common.client")} <em className="payout-optional">{t("common.optional")}</em>
                   </label>
                   <select
                     className="input"
@@ -575,7 +575,7 @@ export default function PaymentsPage() {
                       if (dest?.walletAddress) setDirectAddress(dest.walletAddress);
                     }}
                   >
-                    <option value="">None — pay by address</option>
+                    <option value="">{t("payout.nonePayByAddress")}</option>
                     {payees.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.legalName}
@@ -586,7 +586,7 @@ export default function PaymentsPage() {
                 </div>
                 <div className="pay-form-row">
                   <div>
-                    <label className="label">Amount</label>
+                    <label className="label">{t("common.amount")}</label>
                     <input
                       className="input"
                       type="number"
@@ -599,13 +599,13 @@ export default function PaymentsPage() {
                   </div>
                   <div>
                     <label className="label">
-                      Message <em className="payout-optional">optional</em>
+                      {t("common.message")} <em className="payout-optional">{t("common.optional")}</em>
                     </label>
                     <input
                       className="input"
                       value={directMemo}
                       onChange={(e) => setDirectMemo(e.target.value)}
-                      placeholder="Optional"
+                      placeholder={t("common.optional")}
                     />
                   </div>
                 </div>
@@ -616,7 +616,7 @@ export default function PaymentsPage() {
                     disabled={busyId === "direct" || !onchain}
                     onClick={() => void runDirectPayout()}
                   >
-                    {busyId === "direct" ? "Paying…" : "Pay now"}
+                    {busyId === "direct" ? t("paymentsPage.paying") : t("paymentsPage.payNow")}
                   </button>
                 </div>
               </div>
@@ -625,12 +625,12 @@ export default function PaymentsPage() {
             {mode === "group" ? (
               <div className="pay-form">
                 <div>
-                  <label className="label">Batch name</label>
+                  <label className="label">{t("payout.batchName")}</label>
                   <input
                     className="input"
                     value={batchMemo}
                     onChange={(e) => setBatchMemo(e.target.value)}
-                    placeholder="Vendor run"
+                    placeholder={t("payout.batchPlaceholder")}
                   />
                 </div>
                 <div className="pay-lines">
@@ -645,7 +645,7 @@ export default function PaymentsPage() {
                           setBatchLines(next);
                         }}
                       >
-                        <option value="">Payee…</option>
+                        <option value="">{t("paymentsPage.payeeEllipsis")}</option>
                         {payees.map((p) => (
                           <option key={p.id} value={p.id}>
                             {p.legalName}
@@ -674,7 +674,7 @@ export default function PaymentsPage() {
                     className="btn-ghost btn-sm"
                     onClick={() => setBatchLines([...batchLines, { supplierId: "", amount: "" }])}
                   >
-                    Add line
+                    {t("payout.addLine")}
                   </button>
                   <button
                     type="button"
@@ -682,7 +682,7 @@ export default function PaymentsPage() {
                     disabled={busyId === "batch" || !onchain}
                     onClick={() => void runGroupPayment()}
                   >
-                    {busyId === "batch" ? "Settling…" : "Settle group"}
+                    {busyId === "batch" ? t("payout.settling") : t("payout.settleGroup")}
                   </button>
                 </div>
                 {batches.length > 0 ? (
@@ -690,7 +690,7 @@ export default function PaymentsPage() {
                     {batches.slice(0, 4).map((b) => (
                       <li key={b.id}>
                         <span>
-                          {b.memo || b.id.slice(0, 8)} · {b.lineCount} lines ·{" "}
+                          {b.memo || b.id.slice(0, 8)} · {b.lineCount} {t("paymentsPage.lines")} ·{" "}
                           {formatUsdc(b.totalAmountMinor)}
                         </span>
                         <DashStatus tone={statusTone(b.status)}>{b.status}</DashStatus>
@@ -705,10 +705,10 @@ export default function PaymentsPage() {
           {showFlow ? (
             <div className="pay-flow-compact" aria-live="polite">
               <div className="pay-flow-compact-head">
-                <strong>{flowLabel || "Settlement"}</strong>
-                {flowStep === "done" ? <DashStatus tone="ok">Done</DashStatus> : null}
-                {flowStep === "error" ? <DashStatus tone="bad">Failed</DashStatus> : null}
-                {live ? <DashStatus tone="wait">Running</DashStatus> : null}
+                <strong>{flowLabel || t("paymentsPage.settlement")}</strong>
+                {flowStep === "done" ? <DashStatus tone="ok">{t("common.done")}</DashStatus> : null}
+                {flowStep === "error" ? <DashStatus tone="bad">{t("paymentsPage.failed")}</DashStatus> : null}
+                {live ? <DashStatus tone="wait">{t("paymentsPage.running")}</DashStatus> : null}
               </div>
               <ol className="pay-steps-compact">
                 {steps.map((s) => (
@@ -733,11 +733,11 @@ export default function PaymentsPage() {
 
         <section className="pay-ledger-panel">
           <div className="pay-ledger-head">
-            <h2>Ledger</h2>
+            <h2>{t("paymentsPage.ledger")}</h2>
             <span>{items.length}</span>
           </div>
           {items.length === 0 ? (
-            <DashEmpty>No settlements yet.</DashEmpty>
+            <DashEmpty>{t("paymentsPage.noSettlements")}</DashEmpty>
           ) : (
             <ul className="pay-ledger-compact">
               {items.map((p) => {
@@ -749,7 +749,7 @@ export default function PaymentsPage() {
                       <DashStatus tone={statusTone(p.status)}>{p.status.replace("PAYMENT_", "")}</DashStatus>
                     </div>
                     <p>
-                      {p.supplier?.legalName || "Payee"}
+                      {p.supplier?.legalName || t("paymentsPage.payee")}
                       {p.kind && p.kind !== "invoice" ? ` · ${p.kind}` : ""}
                       {p.invoice?.invoiceNumber ? ` · ${p.invoice.invoiceNumber}` : ""}
                     </p>
@@ -763,17 +763,17 @@ export default function PaymentsPage() {
                           <code>{shortHash(p.transactionHash)}</code>
                         )
                       ) : (
-                        <em>No tx yet</em>
+                        <em>{t("paymentsPage.noTxYet")}</em>
                       )}
                       <div className="pay-ledger-actions">
                         {p.status === "PAYMENT_SUBMITTED" ? (
                           <button type="button" className="btn-quiet btn-sm" onClick={() => void refresh(p.id)}>
-                            Confirm
+                            {t("paymentsPage.confirm")}
                           </button>
                         ) : null}
                         {p.status === "PAYMENT_CONFIRMED" ? (
                           <button type="button" className="btn-quiet btn-sm" onClick={() => void reconcile(p.id)}>
-                            Reconcile
+                            {t("paymentsPage.reconcile")}
                           </button>
                         ) : null}
                       </div>

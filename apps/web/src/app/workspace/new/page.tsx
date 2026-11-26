@@ -63,9 +63,7 @@ export default function NewWorkspacePage() {
   return (
     <AuthFrame title={t("workspace.title")}>
       <p className="mb-6 text-sm leading-relaxed text-mute">
-        {locale === "zh"
-          ? "您已登录。请填写要在 AVENZA 中运营的企业法定名称。"
-          : "You're signed in. Name the organization you want to operate in AVENZA."}
+{t("workspace.signedInHint")}
       </p>
       <form onSubmit={onSubmit} className="space-y-4">
         {error && <p className="border border-black bg-soft px-3 py-2 text-sm text-ink">{error}</p>}
@@ -77,7 +75,7 @@ export default function NewWorkspacePage() {
             onChange={(e) => setLegalName(e.target.value)}
             required
             minLength={2}
-            placeholder={locale === "zh" ? "示例控股有限公司" : "Acme Holdings Ltd"}
+            placeholder={t("workspace.placeholder")}
             autoFocus
           />
         </div>
@@ -85,7 +83,7 @@ export default function NewWorkspacePage() {
           {loading ? t("workspace.creating") : t("workspace.submit")}
         </button>
         <p className="text-sm text-mute">
-          {locale === "zh" ? "账号不对？" : "Wrong account?"}{" "}
+          {t("workspace.wrongAccount")}{" "}
           <button
             type="button"
             className="btn-quiet btn-sm"

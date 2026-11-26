@@ -116,7 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       <div className="shell-body">
-        <aside className="shell-nav" aria-label="Primary">
+        <aside className="shell-nav" aria-label={t("nav.operations")}>
           <nav>
             {navGroups.map((group) => (
               <div key={group.labelKey} className="shell-nav-group">

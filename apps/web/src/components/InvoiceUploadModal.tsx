@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, getOrgId } from "@/lib/api";
 import { DashModal } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type Supplier = { id: string; legalName: string };
 
@@ -18,6 +19,7 @@ export function InvoiceUploadModal({
   onCreated?: (invoiceId: string) => void;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const fileInputId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -38,7 +40,7 @@ export function InvoiceUploadModal({
     if (fileRef.current) fileRef.current.value = "";
     const orgId = getOrgId();
     if (!orgId) {
-      setErr("Select a workspace first");
+      setErr(t("invoiceModal.selectWorkspace"));
       return;
     }
     api<Supplier[]>(`/organizations/${orgId}/suppliers`, { orgId })
@@ -62,7 +64,7 @@ export function InvoiceUploadModal({
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!file) {
-      setErr("Choose an invoice file to upload");
+      setErr(t("invoiceModal.chooseFile"));
       return;
     }
     const orgId = getOrgId();
@@ -98,18 +100,18 @@ export function InvoiceUploadModal({
       onClose();
       router.push(`/app/invoices/${inv.id}`);
     } catch (error) {
-      setErr((error as Error).message || "Upload failed");
+      setErr((error as Error).message || t("invoiceModal.failed"));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <DashModal open={open} onClose={onClose} title="New invoice">
+    <DashModal open={open} onClose={onClose} title={t("invoiceModal.title")}>
       <form className="fund-modal" onSubmit={onSubmit}>
         <div>
           <label className="label" htmlFor="invoice-supplier">
-            Supplier (optional)
+            {t("invoiceModal.supplierOptional")}
           </label>
           <select
             id="invoice-supplier"
@@ -118,7 +120,7 @@ export function InvoiceUploadModal({
             onChange={(e) => setSupplierId(e.target.value)}
             disabled={busy}
           >
-            <option value="">Assign later</option>
+            <option value="">{t("invoiceModal.noneSelect")}</option>
             {suppliers.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.legalName}
@@ -127,9 +129,9 @@ export function InvoiceUploadModal({
           </select>
           {suppliers.length === 0 ? (
             <p className="fund-hint">
-              No suppliers yet — you can still upload, or{" "}
+              {t("invoiceModal.managePayees")}:{" "}
               <Link href="/app/suppliers" onClick={onClose}>
-                register one
+                {t("nav.payees")}
               </Link>
               .
             </p>
@@ -138,7 +140,7 @@ export function InvoiceUploadModal({
 
         <div>
           <label className="label" htmlFor="invoice-number">
-            Invoice number (optional)
+            {t("invoiceModal.invoiceNumber")}
           </label>
           <input
             id="invoice-number"
@@ -151,7 +153,7 @@ export function InvoiceUploadModal({
         </div>
 
         <div>
-          <span className="label">Invoice file</span>
+          <span className="label">{t("invoiceModal.title")}</span>
           <input
             id={fileInputId}
             ref={fileRef}
@@ -189,8 +191,8 @@ export function InvoiceUploadModal({
               </>
             ) : (
               <>
-                <strong>Choose file</strong>
-                <span>PDF, image, or JSON — drag & drop or browse</span>
+                <strong>{t("common.upload")}</strong>
+                <span>{t("invoiceModal.dropHint")}</span>
               </>
             )}
           </label>
@@ -200,10 +202,10 @@ export function InvoiceUploadModal({
 
         <div className="fund-deposit-row" style={{ gridTemplateColumns: "1fr auto" }}>
           <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button type="submit" className="btn-dark" disabled={busy || !file}>
-            {busy ? "Uploading…" : "Upload invoice"}
+            {busy ? t("invoiceModal.uploading") : t("invoiceModal.upload")}
           </button>
         </div>
       </form>

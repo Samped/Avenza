@@ -215,7 +215,7 @@ export default function DashboardPage() {
     const items: Array<{ kind: string; title: string; meta: string; href: string }> = [];
     for (const a of approvals.slice(0, 4)) {
       items.push({
-        kind: "Approval",
+        kind: t("dash.kindApproval"),
         title: a.invoice.invoiceNumber || a.invoice.id.slice(0, 8),
         meta: `${a.currentApprovals}/${a.requiredApprovals} · ${formatUsdc(a.invoice.totalAmountMinor)} USDC`,
         href: `/app/invoices/${a.invoice.id}`,
@@ -225,14 +225,14 @@ export default function DashboardPage() {
       .filter((i) => ["DRAFT", "EXTRACTED", "NEEDS_REVIEW"].includes(i.status.toUpperCase()))
       .slice(0, 4)) {
       items.push({
-        kind: "Review",
+        kind: t("dash.kindReview"),
         title: inv.invoiceNumber || inv.id.slice(0, 8),
-        meta: `${inv.status} · ${inv.supplier?.legalName || "Supplier"}`,
+        meta: `${inv.status} · ${inv.supplier?.legalName || t("dash.supplierFallback")}`,
         href: `/app/invoices/${inv.id}`,
       });
     }
     return items.slice(0, 5);
-  }, [approvals, invoices]);
+  }, [approvals, invoices, t]);
 
   const paymentBars = useMemo(() => {
     const done = payments.filter((p) =>
@@ -246,26 +246,26 @@ export default function DashboardPage() {
     ).length;
     const max = Math.max(1, done, open, failed);
     return [
-      { label: "Settled", value: done, pct: Math.round((done / max) * 100) },
-      { label: "In flight", value: open, pct: Math.round((open / max) * 100) },
-      { label: "Failed", value: failed, pct: Math.round((failed / max) * 100) },
+      { label: t("dash.settled"), value: done, pct: Math.round((done / max) * 100) },
+      { label: t("dash.inFlight"), value: open, pct: Math.round((open / max) * 100) },
+      { label: t("dash.failed"), value: failed, pct: Math.round((failed / max) * 100) },
     ];
-  }, [payments]);
+  }, [payments, t]);
 
   const agingBars = useMemo(
     () =>
       [
-        { label: "Now", value: aging.current },
-        { label: "1–7d", value: aging.d1_7 },
-        { label: "8–30d", value: aging.d8_30 },
-        { label: "31–60d", value: aging.d31_60 },
-        { label: "60d+", value: aging.d60p },
+        { label: t("dash.ageNow"), value: aging.current },
+        { label: t("dash.age1_7"), value: aging.d1_7 },
+        { label: t("dash.age8_30"), value: aging.d8_30 },
+        { label: t("dash.age31_60"), value: aging.d31_60 },
+        { label: t("dash.age60p"), value: aging.d60p },
       ].map((b) => ({
         ...b,
         pct: Math.round((b.value / agingMax) * 100),
         display: formatUsdc(String(b.value)),
       })),
-    [aging, agingMax],
+    [aging, agingMax, t],
   );
 
   async function copyFunding() {
@@ -277,15 +277,15 @@ export default function DashboardPage() {
 
   const attentionCount = pulse.pendingApprovals + pulse.needsReview + pulse.readyPay;
   const kpis = [
-    { label: "Approvals", value: String(pulse.pendingApprovals), href: "/app/approvals", hint: "Waiting on you" },
-    { label: "In review", value: String(pulse.needsReview), href: "/app/invoices", hint: "Extraction / draft" },
-    { label: "Ready to pay", value: String(pulse.readyPay), href: "/app/payments", hint: "Approved invoices" },
+    { label: t("dash.kpiApprovals"), value: String(pulse.pendingApprovals), href: "/app/approvals", hint: t("dash.kpiApprovalsHint") },
+    { label: t("dash.kpiInReview"), value: String(pulse.needsReview), href: "/app/invoices", hint: t("dash.kpiInReviewHint") },
+    { label: t("dash.kpiReady"), value: String(pulse.readyPay), href: "/app/payments", hint: t("dash.kpiReadyHint") },
     {
-      label: "Open payable",
+      label: t("dash.kpiOpen"),
       value: formatUsdc(String(pulse.openMinor)),
       suffix: "USDC",
       href: "/app/invoices",
-      hint: "Across open invoices",
+      hint: t("dash.kpiOpenHint"),
     },
   ] as const;
 
@@ -342,52 +342,52 @@ export default function DashboardPage() {
           <article className="home-card home-treasury">
             <div className="home-card-head">
               <div>
-                <p className="home-kicker">Treasury</p>
-                <h2>Funding wallet</h2>
+                <p className="home-kicker">{t("dash.treasuryKicker")}</p>
+                <h2>{t("dash.fundingWallet")}</h2>
               </div>
               <button type="button" className="home-btn home-btn-dark home-btn-sm" onClick={() => setFundOpen(true)}>
-                Deposit
+                {t("common.deposit")}
               </button>
             </div>
             <div className="home-treasury-grid">
               <div className="home-treasury-primary">
                 <p className="home-wallet-addr">{fundingWallet ? shortAddr(fundingWallet) : "—"}</p>
-                <p className="home-wallet-full">{fundingWallet || "Provisioning unique wallet for this org…"}</p>
+                <p className="home-wallet-full">{fundingWallet || t("dash.provisioningWallet")}</p>
                 <div className="home-wallet-cta">
                   <button type="button" className="home-chip" onClick={copyFunding} disabled={!fundingWallet}>
-                    {copied ? "Copied" : "Copy"}
+                    {copied ? t("common.copied") : t("common.copy")}
                   </button>
                   {fundingWallet ? (
                     <a className="home-chip" href={`${EXPLORER}${fundingWallet}`} target="_blank" rel="noreferrer">
-                      Explorer
+                      {t("common.explorer")}
                     </a>
                   ) : null}
                   <button type="button" className="home-chip" onClick={() => setFundOpen(true)}>
-                    Fund
+                    {t("common.fund")}
                   </button>
                 </div>
               </div>
               <div className="home-treasury-bals">
                 <div>
-                  <span>Wallet</span>
+                  <span>{t("dash.walletUsdc")}</span>
                   <strong>{treasury ? formatUsdc(treasury.balances.fundingWalletUsdcMinor) : "—"}</strong>
                   <em>USDC</em>
                 </div>
                 <div>
-                  <span>Vault</span>
+                  <span>{t("dash.vaultUsdc")}</span>
                   <strong>{treasury ? formatUsdc(treasury.balances.vaultAvailableUsdcMinor) : "—"}</strong>
                   <em>USDC</em>
                 </div>
                 <div>
-                  <span>Network</span>
+                  <span>{t("dash.network")}</span>
                   <strong>X Layer {network?.chainId ?? "—"}</strong>
                   <em>{network?.settlementMode ?? "—"}</em>
                 </div>
                 <div>
-                  <span>Vault addr</span>
+                  <span>{t("dash.vaultAddr")}</span>
                   <strong className="font-mono">{vault ? shortAddr(vault) : "—"}</strong>
                   <em>
-                    {suppliers} payees · {erp.length} ERP
+                    {t("dash.payeesErp", { payees: suppliers, erp: erp.length })}
                   </em>
                 </div>
               </div>
@@ -397,13 +397,13 @@ export default function DashboardPage() {
           <article className="home-card home-charts">
             <div className="home-card-head">
               <div>
-                <p className="home-kicker">Analytics</p>
-                <h2>Settlement & aging</h2>
+                <p className="home-kicker">{t("dash.analyticsKicker")}</p>
+                <h2>{t("dash.analyticsTitle")}</h2>
               </div>
             </div>
             <div className="home-charts-grid">
               <div className="home-chart">
-                <p className="home-chart-title">Payments by status</p>
+                <p className="home-chart-title">{t("dash.paymentsByStatus")}</p>
                 <div className="home-vbars" role="img" aria-label="Payment status chart">
                   {paymentBars.map((b) => (
                     <div key={b.label} className="home-vbar">
@@ -417,7 +417,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="home-chart">
-                <p className="home-chart-title">Payables by age</p>
+                <p className="home-chart-title">{t("dash.payablesByAge")}</p>
                 <div className="home-hbars" role="img" aria-label="Aging chart">
                   {agingBars.map((b) => (
                     <div key={b.label} className="home-hbar">
@@ -436,22 +436,22 @@ export default function DashboardPage() {
           <article className="home-card">
             <div className="home-card-head">
               <div>
-                <p className="home-kicker">Queue</p>
-                <h2>Needs you</h2>
+                <p className="home-kicker">{t("dash.queueKicker")}</p>
+                <h2>{t("dash.needsYou")}</h2>
               </div>
               <Link href="/app/approvals" className="home-link">
-                Open queue
+                {t("dash.openQueue")}
               </Link>
             </div>
             {attention.length === 0 ? (
               <div className="home-empty">
-                <p>Nothing waiting — upload an invoice or pay a client.</p>
+                <p>{t("dash.nothingWaiting")}</p>
                 <div className="home-empty-actions">
                   <button type="button" className="home-btn home-btn-dark home-btn-sm" onClick={() => setInvoiceOpen(true)}>
-                    Upload invoice
+                    {t("dash.uploadInvoice")}
                   </button>
                   <button type="button" className="home-btn home-btn-line home-btn-sm" onClick={() => openPayout("direct")}>
-                    Pay client
+                    {t("pages.payClient")}
                   </button>
                 </div>
               </div>
@@ -463,7 +463,7 @@ export default function DashboardPage() {
                       <span className="home-badge">{item.kind}</span>
                       <strong>{item.title}</strong>
                       <em>{item.meta}</em>
-                      <span className="home-work-cta">Open</span>
+                      <span className="home-work-cta">{t("common.open")}</span>
                     </Link>
                   </li>
                 ))}
@@ -474,22 +474,22 @@ export default function DashboardPage() {
           <article className="home-card home-ledger">
             <div className="home-card-head">
               <div>
-                <p className="home-kicker">Activity</p>
-                <h2>Recent invoices</h2>
+                <p className="home-kicker">{t("dash.activityKicker")}</p>
+                <h2>{t("dash.recentInvoices")}</h2>
               </div>
               <Link href="/app/invoices" className="home-link">
-                View all
+                {t("common.viewAll")}
               </Link>
             </div>
             <div className="home-table-wrap">
               <table className="home-table">
                 <thead>
                   <tr>
-                    <th>Invoice</th>
-                    <th>Supplier</th>
-                    <th>Amount</th>
-                    <th>Due</th>
-                    <th>Status</th>
+                    <th>{t("dash.colInvoice")}</th>
+                    <th>{t("dash.colSupplier")}</th>
+                    <th>{t("dash.colAmount")}</th>
+                    <th>{t("dash.colDue")}</th>
+                    <th>{t("dash.colStatus")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -504,12 +504,12 @@ export default function DashboardPage() {
                         <td className="num">{formatUsdc(inv.totalAmountMinor)}</td>
                         <td>
                           {days == null
-                            ? "—"
+                            ? t("common.empty")
                             : days < 0
-                              ? `${Math.abs(days)}d late`
+                              ? t("dash.daysLate", { n: Math.abs(days) })
                               : days === 0
-                                ? "Today"
-                                : `${days}d`}
+                                ? t("common.today")
+                                : t("dash.daysLeft", { n: days })}
                         </td>
                         <td>
                           <span className={`home-status home-status--${statusTone(inv.status)}`}>{inv.status}</span>
@@ -520,9 +520,9 @@ export default function DashboardPage() {
                   {!loading && invoices.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="home-table-empty">
-                        No invoices yet.{" "}
+                        {t("dash.noInvoicesYet")}{" "}
                         <button type="button" className="home-link-btn" onClick={() => setInvoiceOpen(true)}>
-                          Upload one
+                          {t("dash.uploadOne")}
                         </button>
                       </td>
                     </tr>
@@ -537,16 +537,16 @@ export default function DashboardPage() {
           <article className="home-card">
             <div className="home-card-head">
               <div>
-                <p className="home-kicker">Schedule</p>
-                <h2>Next due</h2>
+                <p className="home-kicker">{t("dash.scheduleKicker")}</p>
+                <h2>{t("dash.nextDue")}</h2>
               </div>
               <Link href="/app/payments" className="home-link">
-                Payments
+                {t("nav.payments")}
               </Link>
             </div>
             <div className="home-due">
               {upcomingPayouts.length === 0 ? (
-                <p className="home-muted">No dated payables yet.</p>
+                <p className="home-muted">{t("dash.noDatedPayables")}</p>
               ) : (
                 <ul>
                   {upcomingPayouts.map((inv) => (
@@ -555,10 +555,10 @@ export default function DashboardPage() {
                         <span>{inv.invoiceNumber || inv.id.slice(0, 8)}</span>
                         <span>
                           {inv.days! < 0
-                            ? `${Math.abs(inv.days!)}d late`
+                            ? t("dash.daysLate", { n: Math.abs(inv.days!) })
                             : inv.days === 0
-                              ? "Today"
-                              : `${inv.days}d`}
+                              ? t("common.today")
+                              : t("dash.daysLeft", { n: inv.days! })}
                         </span>
                       </Link>
                     </li>
@@ -571,37 +571,37 @@ export default function DashboardPage() {
           <article className="home-card home-actions-card">
             <div className="home-card-head">
               <div>
-                <p className="home-kicker">Shortcuts</p>
-                <h2>Move faster</h2>
+                <p className="home-kicker">{t("dash.shortcutsKicker")}</p>
+                <h2>{t("dash.moveFaster")}</h2>
               </div>
             </div>
             <div className="home-shortcuts">
               <button type="button" className="home-shortcut" onClick={() => openPayout("direct")}>
                 <span>01</span>
                 <div>
-                  <strong>Pay client</strong>
-                  <em>Individual USDC payout</em>
+                  <strong>{t("dash.shortcutPay")}</strong>
+                  <em>{t("dash.shortcutPayHint")}</em>
                 </div>
               </button>
               <button type="button" className="home-shortcut" onClick={() => openPayout("group")}>
                 <span>02</span>
                 <div>
-                  <strong>Group pay</strong>
-                  <em>Batch settle multiple</em>
+                  <strong>{t("dash.shortcutGroup")}</strong>
+                  <em>{t("dash.shortcutGroupHint")}</em>
                 </div>
               </button>
               <button type="button" className="home-shortcut" onClick={() => setInvoiceOpen(true)}>
                 <span>03</span>
                 <div>
-                  <strong>Upload</strong>
-                  <em>New invoice</em>
+                  <strong>{t("dash.shortcutUpload")}</strong>
+                  <em>{t("dash.shortcutUploadHint")}</em>
                 </div>
               </button>
               <Link href="/app/settings?tab=workspace" className="home-shortcut">
                 <span>04</span>
                 <div>
-                  <strong>Fund</strong>
-                  <em>Wallet · vault</em>
+                  <strong>{t("dash.shortcutFund")}</strong>
+                  <em>{t("dash.shortcutFundHint")}</em>
                 </div>
               </Link>
             </div>

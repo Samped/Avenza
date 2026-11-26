@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, getOrgId } from "@/lib/api";
 import { DashModal, DashStatus } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type Payee = {
   id: string;
@@ -52,6 +53,7 @@ export function PayoutModal({
   onPaid?: () => void;
   initialMode?: Mode;
 }) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [payees, setPayees] = useState<Payee[]>([]);
   const [loading, setLoading] = useState(false);
@@ -252,9 +254,9 @@ export function PayoutModal({
   }
 
   return (
-    <DashModal open={open} onClose={onClose} title="Send payment" wide>
+    <DashModal open={open} onClose={onClose} title={t("payout.title")} wide>
       <div className="payout-modal">
-        <div className="payout-modes" role="tablist" aria-label="Payout type">
+        <div className="payout-modes" role="tablist" aria-label={t("payout.title")}>
           <button
             type="button"
             role="tab"
@@ -262,7 +264,7 @@ export function PayoutModal({
             className={`payout-mode${mode === "direct" ? " is-active" : ""}`}
             onClick={() => setMode("direct")}
           >
-            Individual
+            {t("payout.individual")}
           </button>
           <button
             type="button"
@@ -271,7 +273,7 @@ export function PayoutModal({
             className={`payout-mode${mode === "group" ? " is-active" : ""}`}
             onClick={() => setMode("group")}
           >
-            Group
+            {t("payout.group")}
           </button>
         </div>
 
@@ -282,11 +284,11 @@ export function PayoutModal({
         ) : null}
 
         {loading ? (
-          <p className="fund-hint">Loading…</p>
+          <p className="fund-hint">{t("payout.loading")}</p>
         ) : mode === "direct" ? (
           <div className="fund-modal">
             <div>
-              <label className="label">Address</label>
+              <label className="label">{t("payout.address")}</label>
               <input
                 className="input"
                 value={address}
@@ -298,7 +300,7 @@ export function PayoutModal({
             </div>
             <div>
               <label className="label">
-                Client <em className="payout-optional">optional</em>
+                {t("payout.clientOptional")} <em className="payout-optional">{t("common.optional")}</em>
               </label>
               <select
                 className="input"
@@ -306,7 +308,7 @@ export function PayoutModal({
                 onChange={(e) => onPickClient(e.target.value)}
                 disabled={busy}
               >
-                <option value="">None — pay by address</option>
+                <option value="">{t("payout.nonePayByAddress")}</option>
                 {payees.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.legalName}
@@ -316,7 +318,7 @@ export function PayoutModal({
               </select>
             </div>
             <div>
-              <label className="label">Amount (USDC)</label>
+              <label className="label">{t("payout.amountUsdc")}</label>
               <input
                 className="input"
                 type="number"
@@ -330,37 +332,37 @@ export function PayoutModal({
             </div>
             <div>
               <label className="label">
-                Message <em className="payout-optional">optional</em>
+                {t("payout.messageOptional")} <em className="payout-optional">{t("common.optional")}</em>
               </label>
               <input
                 className="input"
                 value={memo}
                 onChange={(e) => setMemo(e.target.value)}
-                placeholder="What this payment is for"
+                placeholder={t("payout.messagePlaceholder")}
                 disabled={busy}
               />
             </div>
             <div className="fund-actions">
               <button type="button" className="btn-dark" disabled={busy} onClick={() => void runDirect()}>
-                {busy ? "Paying…" : "Pay now"}
+                {busy ? t("payout.paying") : t("payout.payNow")}
               </button>
               <Link href="/app/payments" className="btn-ghost btn-sm" onClick={onClose}>
-                Full ledger
+                {t("payout.fullLedger")}
               </Link>
             </div>
           </div>
         ) : (
           <div className="fund-modal">
-            <p className="fund-hint">Each line needs an address (client and message are optional).</p>
+            <p className="fund-hint">{t("payout.groupHint")}</p>
             <div>
               <label className="label">
-                Batch name <em className="payout-optional">optional</em>
+                {t("payout.batchName")} <em className="payout-optional">{t("common.optional")}</em>
               </label>
               <input
                 className="input"
                 value={batchMemo}
                 onChange={(e) => setBatchMemo(e.target.value)}
-                placeholder="Vendor run"
+                placeholder={t("payout.batchPlaceholder")}
                 disabled={busy}
               />
             </div>
@@ -370,7 +372,7 @@ export function PayoutModal({
                   <input
                     className="input"
                     value={line.address}
-                    placeholder="Address 0x…"
+                    placeholder={t("payout.addressPlaceholder")}
                     spellCheck={false}
                     disabled={busy}
                     onChange={(e) => {
@@ -397,7 +399,7 @@ export function PayoutModal({
                         setLines(next);
                       }}
                     >
-                      <option value="">Client (optional)</option>
+                      <option value="">{t("payout.clientOptionalSelect")}</option>
                       {payees.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.legalName}
@@ -409,7 +411,7 @@ export function PayoutModal({
                       type="number"
                       min="0"
                       step="0.01"
-                      placeholder="Amount"
+                      placeholder={t("payout.amountPlaceholder")}
                       value={line.amount}
                       disabled={busy}
                       onChange={(e) => {
@@ -422,7 +424,7 @@ export function PayoutModal({
                   <input
                     className="input"
                     value={line.memo}
-                    placeholder="Message (optional)"
+                    placeholder={t("payout.messageLinePlaceholder")}
                     disabled={busy}
                     onChange={(e) => {
                       const next = [...lines];
@@ -442,12 +444,12 @@ export function PayoutModal({
                   setLines([...lines, { address: "", supplierId: "", amount: "", memo: "" }])
                 }
               >
-                Add line
+                {t("payout.addLine")}
               </button>
               <button type="button" className="btn-dark" disabled={busy} onClick={() => void runGroup()}>
-                {busy ? "Settling…" : "Settle group"}
+                {busy ? t("payout.settling") : t("payout.settleGroup")}
               </button>
-              {msgTone === "ok" ? <DashStatus tone="ok">Done</DashStatus> : null}
+              {msgTone === "ok" ? <DashStatus tone="ok">{t("payout.done")}</DashStatus> : null}
             </div>
           </div>
         )}

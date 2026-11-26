@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, getOrgId } from "@/lib/api";
 import { DashModal } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type TreasurySummary = {
   onChainOrgId: string | null;
@@ -49,6 +50,7 @@ export function FundDepositModal({
   onDeposited?: () => void;
   initial?: Partial<TreasurySummary> | null;
 }) {
+  const { t } = useI18n();
   const [summary, setSummary] = useState<TreasurySummary | null>(null);
   const [amount, setAmount] = useState("");
   const [busy, setBusy] = useState(false);
@@ -112,14 +114,19 @@ export function FundDepositModal({
       let body: { amountMinor?: string } = {};
       if (!all) {
         const n = Number(amount);
-        if (!Number.isFinite(n) || n <= 0) throw new Error("Enter a USDC amount greater than zero");
+        if (!Number.isFinite(n) || n <= 0) throw new Error(t("fund.amountError"));
         body = { amountMinor: String(Math.round(n * 1e6)) };
       }
       const res = await api<{ amountMinor: string; depositHash: string }>(
         `/organizations/${orgId}/treasury/deposit`,
         { method: "POST", orgId, body: JSON.stringify(body) },
       );
-      setMsg(`Deposited ${formatUsdc(res.amountMinor)} USDC · ${shortAddr(res.depositHash)}`);
+      setMsg(
+        t("fund.deposited", {
+          amount: formatUsdc(res.amountMinor),
+          hash: shortAddr(res.depositHash),
+        }),
+      );
       setAmount("");
       await load();
       onDeposited?.();
@@ -131,27 +138,27 @@ export function FundDepositModal({
   }
 
   return (
-    <DashModal open={open} onClose={onClose} title="Fund & deposit">
+    <DashModal open={open} onClose={onClose} title={t("fund.title")}>
       <div className="fund-modal">
         <div className="fund-step">
           <span className="fund-step-num">1</span>
           <div>
-            <strong>Send USDC to your funding wallet</strong>
-            <p>Native USDC on X Layer, plus a little OKB for gas.</p>
+            <strong>{t("fund.step1Title")}</strong>
+            <p>{t("fund.step1Lead")}</p>
           </div>
         </div>
 
         <div className="fund-wallet-card">
-          <p className="home-kicker">Funding wallet</p>
-          <p className="fund-addr">{funding ? shortAddr(funding) : "Provisioning…"}</p>
-          <p className="fund-addr-full">{funding || "—"}</p>
+          <p className="home-kicker">{t("fund.fundingWallet")}</p>
+          <p className="fund-addr">{funding ? shortAddr(funding) : t("fund.provisioning")}</p>
+          <p className="fund-addr-full">{funding || t("common.empty")}</p>
           <div className="fund-actions">
             <button type="button" className="home-chip" disabled={!funding} onClick={copyWallet}>
-              {copied ? "Copied" : "Copy address"}
+              {copied ? t("common.copied") : t("common.copyAddress")}
             </button>
             {funding ? (
               <a className="home-chip" href={`${EXPLORER}${funding}`} target="_blank" rel="noreferrer">
-                Explorer
+                {t("common.explorer")}
               </a>
             ) : null}
           </div>
@@ -159,31 +166,33 @@ export function FundDepositModal({
 
         <div className="fund-bals">
           <div>
-            <span>Wallet USDC</span>
-            <strong>{summary ? formatUsdc(walletUsdc) : "—"}</strong>
+            <span>{t("fund.walletUsdc")}</span>
+            <strong>{summary ? formatUsdc(walletUsdc) : t("common.empty")}</strong>
           </div>
           <div>
-            <span>Wallet OKB</span>
-            <strong>{summary ? formatOkb(summary.balances.fundingWalletOkbWei) : "—"}</strong>
+            <span>{t("fund.walletOkb")}</span>
+            <strong>{summary ? formatOkb(summary.balances.fundingWalletOkbWei) : t("common.empty")}</strong>
           </div>
           <div>
-            <span>Vault</span>
-            <strong>{summary ? formatUsdc(summary.balances.vaultAvailableUsdcMinor) : "—"}</strong>
+            <span>{t("fund.vault")}</span>
+            <strong>
+              {summary ? formatUsdc(summary.balances.vaultAvailableUsdcMinor) : t("common.empty")}
+            </strong>
           </div>
         </div>
 
         <div className="fund-step">
           <span className="fund-step-num">2</span>
           <div>
-            <strong>Deposit into the vault</strong>
-            <p>Moves USDC from the funding wallet into BusinessTreasury for settlement.</p>
+            <strong>{t("fund.step2Title")}</strong>
+            <p>{t("fund.step2Lead")}</p>
           </div>
         </div>
 
         <div className="fund-deposit-row">
           <div className="fund-amount">
             <label className="label" htmlFor="fund-amount">
-              Amount (USDC)
+              {t("fund.amountUsdc")}
             </label>
             <input
               id="fund-amount"
@@ -196,16 +205,14 @@ export function FundDepositModal({
             />
           </div>
           <button type="button" className="btn-ghost" disabled={busy || !hasBalance} onClick={() => deposit(false)}>
-            {busy ? "Working…" : "Deposit"}
+            {busy ? t("common.working") : t("fund.deposit")}
           </button>
           <button type="button" className="btn-dark" disabled={busy || !hasBalance} onClick={() => deposit(true)}>
-            {busy ? "Working…" : "Deposit all"}
+            {busy ? t("common.working") : t("fund.depositAll")}
           </button>
         </div>
 
-        {!hasBalance && summary ? (
-          <p className="fund-hint">Wallet is empty — send USDC to the address above, then deposit.</p>
-        ) : null}
+        {!hasBalance && summary ? <p className="fund-hint">{t("fund.emptyHint")}</p> : null}
         {msg ? <p className="fund-ok">{msg}</p> : null}
         {err ? <p className="fund-err">{err}</p> : null}
       </div>

@@ -12,15 +12,16 @@ import {
 import {
   isLocale,
   LOCALE_STORAGE_KEY,
-  translate,
+  tFormat,
   type Locale,
   type MessageKey,
 } from "./dictionaries";
+import { translate } from "./translate";
 
 type I18nContextValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: MessageKey) => string;
+  t: (key: MessageKey, vars?: Record<string, string | number>) => string;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -53,7 +54,13 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.locale = next;
   }, []);
 
-  const t = useCallback((key: MessageKey) => translate(locale, key), [locale]);
+  const t = useCallback(
+    (key: MessageKey, vars?: Record<string, string | number>) => {
+      const raw = translate(locale, key);
+      return vars ? tFormat(raw, vars) : raw;
+    },
+    [locale],
+  );
 
   const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
 

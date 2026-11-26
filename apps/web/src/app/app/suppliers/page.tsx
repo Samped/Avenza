@@ -81,29 +81,29 @@ export default function SuppliersPage() {
       <DashHeader
         eyebrow={t("pages.payeesEyebrow")}
         title={t("pages.payeesTitle")}
-        lead={t("pages.payeesLead")}
+        lead={t("payeesPage.lead")}
       />
 
-      <DashPanel title="Register payee">
+      <DashPanel title={t("payeesPage.register")}>
         <form onSubmit={onCreate} className="dash-form is-3">
           <div>
-            <label className="label">Legal name</label>
+            <label className="label">{t("common.legalName")}</label>
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div>
-            <label className="label">Type</label>
+            <label className="label">{t("payeesPage.type")}</label>
             <select
               className="input"
               value={payeeType}
               onChange={(e) => setPayeeType(e.target.value as typeof payeeType)}
             >
-              <option value="supplier">Supplier</option>
-              <option value="client">Client</option>
-              <option value="business">Business</option>
+              <option value="supplier">{t("payeesPage.typeSupplier")}</option>
+              <option value="client">{t("payeesPage.typeClient")}</option>
+              <option value="business">{t("payeesPage.typeBusiness")}</option>
             </select>
           </div>
           <div>
-            <label className="label">USDC destination</label>
+            <label className="label">{t("payeesPage.usdcDestination")}</label>
             <input
               className="input font-mono text-xs"
               placeholder="0x…"
@@ -112,15 +112,15 @@ export default function SuppliersPage() {
             />
           </div>
           <div className="dash-form-actions dash-span-3">
-            <button className="btn-dark">Register</button>
+            <button className="btn-dark">{t("common.register")}</button>
           </div>
           {error ? <p className="dash-span-3 text-sm text-ink">{error}</p> : null}
         </form>
       </DashPanel>
 
-      <DashPanel title="Directory">
+      <DashPanel title={t("payeesPage.directory")}>
         {items.length === 0 ? (
-          <DashEmpty>No payees registered yet.</DashEmpty>
+          <DashEmpty>{t("payeesPage.empty")}</DashEmpty>
         ) : (
           <ul className="dash-list">
             {items.map((s) => (
@@ -133,7 +133,7 @@ export default function SuppliersPage() {
                   <em>
                     {s.paymentDestinations[0]?.walletAddress
                       ? shortAddr(s.paymentDestinations[0].walletAddress)
-                      : "No destination"}
+                      : t("payeesPage.noDestination")}
                   </em>
                 </div>
                 <DashStatus>{s.verificationStatus}</DashStatus>
