@@ -1,0 +1,35 @@
+BusinessTreasury — OKLink form values
+
+Contract address:
+0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA
+
+Compiler type:
+Solidity(StandardJsonInput)
+
+Compiler version:
+v0.8.24+commit.e11b9ed9
+
+Source JSON:
+Paste ALL of BusinessTreasury.oklink.json (pretty) or BusinessTreasury.oklink.min.json
+
+If the form asks for contract name / path:
+src/BusinessTreasury.sol:BusinessTreasury
+or just: BusinessTreasury
+
+ABI data (constructor args, NO 0x prefix):
+000000000000000000000000d9792bf937d9673ab08c452fe55ec4e26632be54000000000000000000000000e3f25b5e9da3dfa72c0a12f05fd45cc0dd4243dd000000000000000000000000f10cdeb14604f6311195da90b6076713f7f42f14000000000000000000000000cc5661d1471e9e61b37df5ad5d2e1b2c5578c884000000000000000000000000dec90b78111ba2fc6fc6d84d8b9ec159a2d4b9b300000000000000000000000000000000000000000000000000000000000007a0000000000000000000000000d9792bf937d9673ab08c452fe55ec4e26632be54
+
+Library address:
+leave empty
+
+Open source license:
+MIT License (MIT)
+
+If Standard JSON still fails:
+1) Compiler type = Solidity (Single file)
+2) Paste BusinessTreasury.flattened.sol
+3) Same compiler 0.8.24, optimization YES, runs 200, viaIR YES
+4) Same ABI data above
+
+Note: bytecode already matches on-chain and is exact_match on Sourcify:
+https://repo.sourcify.dev/1952/0x96778c369d85aaccbf6de0bcd0671b048e16e5ca
