@@ -1,109 +1,136 @@
-# Mainnet go-live runbook (X Layer 196)
+# Mainnet go-live runbook (X Layer 196) — enterprise
 
 **Do not accept third-party USDC until every gate below is checked.**
 
-Native USDC (mainnet): `0xB6CEceAB302E2E4948951eE7843FC24E92933061`  
-TapeOut Cerebr: `0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF` (circuit `#1`)
+| Item | Value |
+|------|--------|
+| Chain | X Layer **196** |
+| Native USDC | `0xB6CEceAB302E2E4948951eE7843FC24E92933061` |
+| TapeOut Cerebr | `0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF` |
+| Circuit | `#1` — AND(`amountOk`, `budgetOk`) |
+| Explorer | https://www.oklink.com/xlayer |
+
+Template env: [`apps/api/.env.mainnet.example`](../apps/api/.env.mainnet.example)  
+Preflight: `./scripts/mainnet-preflight.sh`
 
 ---
 
-## 0. Code gates (already patched in repo)
+## 0. Code gates (enforced in repo)
 
-- [x] Invoice cannot create a second payment after `PAYMENT_FAILED` — retry `/execute` on the same id
-- [x] `fundingWalletKeyEnc` stripped from org API responses
-- [x] `ENCRYPTION_KEY` / `JWT_SECRET` / field key required in production
-- [x] `PaymentAuthorization` checks `VendorRegistry.isEligible` when wired; `consume` is treasury-only
-- [x] Address-only payees are `pending` until verified
-- [x] Partner API cannot decide approvals / forge admin SoD; settle needs `payments:settle`
-- [x] Console no longer one-click approves dual-control payouts
-- [x] Rate limit, `INTERNAL_WEBHOOK_TOKEN`, TapeOut fallback off on prod/mainnet
+- [x] No second payment after `PAYMENT_FAILED` — retry `/execute` on same id  
+- [x] `fundingWalletKeyEnc` stripped from org API responses  
+- [x] Production secrets required; TapeOut local fallback forbidden  
+- [x] Mainnet boot refuses wrong USDC, test RPC, missing contracts/relayer, confirmations &lt; 3  
+- [x] `VendorRegistry` eligibility when wired; treasury-only `consume`  
+- [x] Pending payees cannot settle until verified  
+- [x] Partner API SoD (`payments:settle` separate; cannot decide approvals)  
+- [x] Dual-control respected in console  
+- [x] Swagger off in production unless `ENABLE_SWAGGER=true`  
+- [x] `db:seed` blocked on mainnet production unless `ALLOW_MAINNET_SEED=yes`  
+- [x] Deploy script requires distinct deployer vs relayer on 196  
 
 ---
 
-## 1. Secrets & env (wire-prod-env)
+## 1. Wallets & custody (before any deploy)
 
-Generate **new** secrets (never reuse testnet/dev values):
+1. **Deployer** — cold/hardware preferred; funds OKB for contract deploy only.  
+2. **Relayer** — separate hot wallet; OKB for gas only; **never** the deployer key.  
+3. **Ops multisig** — will own `EmergencyControl` + Ownable after deploy.  
+4. Confirm legal posture for **custodial** funding wallets before third-party funds.
+
+Generate app secrets (new — never reuse testnet):
 
 ```bash
 openssl rand -hex 32   # JWT_SECRET / SESSION_SECRET / INTERNAL_WEBHOOK_TOKEN
-openssl rand -hex 32   # ENCRYPTION_KEY (64 hex chars)
+openssl rand -hex 32   # ENCRYPTION_KEY (64 hex)
 openssl rand -base64 48  # AVENZA_FIELD_ENCRYPTION_KEY
 ```
 
-Production `.env` (API + root):
-
-```bash
-NODE_ENV=production
-XLAYER_CHAIN_ID=196
-XLAYER_RPC_URL=https://rpc.xlayer.tech
-USDC_TOKEN_ADDRESS=0xB6CEceAB302E2E4948951eE7843FC24E92933061
-ALLOW_TAPEOUT_LOCAL_FALLBACK=false
-REQUIRED_CONFIRMATIONS=3
-TAPEOUT_EVAL_CHAIN_ID=196
-TAPEOUT_RPC_URL=https://rpc.xlayer.tech
-TAPEOUT_PROCESSOR_ADDRESS=0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF
-# + all contract addresses from deploy log
-# + JWT_SECRET, ENCRYPTION_KEY, AVENZA_FIELD_ENCRYPTION_KEY, INTERNAL_WEBHOOK_TOKEN
-# + dedicated RELAYER_PRIVATE_KEY (not deployer)
-```
-
-Web:
-
-```bash
-NEXT_PUBLIC_API_URL=https://<api-host>/api/v1
-NEXT_PUBLIC_EXPLORER_ADDRESS_BASE=https://www.oklink.com/xlayer/address/
-```
-
-Migrate field ciphertext after setting the field key:
-
-```bash
-npm run encrypt:fields -w @avenza/api
-```
-
-**Custody key rotation:** changing `ENCRYPTION_KEY` invalidates funding wallet ciphertext. Re-key each org wallet under maintenance (new wallet + user re-fund) or run a dedicated rewrap tool before cutover.
-
 ---
 
-## 2. Deploy contracts (deploy-mainnet-196)
+## 2. Deploy contracts
 
 ```bash
 export CONFIRM_MAINNET_DEPLOY=yes
 export XLAYER_CHAIN_ID=196
 export XLAYER_RPC_URL=https://rpc.xlayer.tech
 export USDC_TOKEN_ADDRESS=0xB6CEceAB302E2E4948951eE7843FC24E92933061
-export DEPLOYER_PRIVATE_KEY=0x…   # funded OKB; offline / hardware preferred
-export RELAYER_PRIVATE_KEY=0x…    # separate hot wallet
+export TAPEOUT_PROCESSOR_ADDRESS=0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF
+export DEPLOYER_PRIVATE_KEY=0x…   # cold
+export RELAYER_PRIVATE_KEY=0x…    # hot, different
 ./scripts/deploy-xlayer.sh
 ./scripts/verify-xlayer.sh
 ```
 
-Copy logged addresses into `.env`. Transfer **Ownable** on EmergencyControl + registries + Auth/Treasury to a **multisig**. Document pause: `EmergencyControl.pause()`.
+Copy addresses into Fly secrets / production env. Transfer Ownable → multisig. Document pause: `EmergencyControl.pause()`.
 
 ---
 
-## 3. Re-onboard orgs (re-onboard-orgs)
+## 3. Data plane & API host
 
-Testnet org / vendor / policy state does **not** carry over.
+| Piece | Recommendation |
+|-------|----------------|
+| Postgres | Neon (prod project) — **no** `db:seed` |
+| Redis | Upstash |
+| API | Fly `avenza-api` (`fly.toml` mainnet defaults) |
+| Web | Vercel — `NEXT_PUBLIC_API_URL`, mainnet explorer base |
 
-1. Create org in production API (new funding wallet).
-2. Ensure on-chain org register + policy with Cerebr processor (non-zero) + controls publish.
-3. Register & **verify** payees (console verify — pending wallets cannot settle).
-4. Sync vendors via settlement path (`syncVendor` on execute).
-5. Fund funding wallet with tiny USDC + OKB gas; deposit into vault.
+```bash
+# Against production DATABASE_URL only
+npm run db:generate
+npm run db:push
+# optional field migration after setting AVENZA_FIELD_ENCRYPTION_KEY
+npm run encrypt:fields -w @avenza/api
+./scripts/mainnet-preflight.sh
+```
+
+Fly secrets (example):
+
+```bash
+fly secrets set \
+  DATABASE_URL=… REDIS_URL=… \
+  JWT_SECRET=… SESSION_SECRET=… \
+  ENCRYPTION_KEY=… AVENZA_FIELD_ENCRYPTION_KEY=… \
+  INTERNAL_WEBHOOK_TOKEN=… \
+  RELAYER_PRIVATE_KEY=… \
+  APP_URL=https://YOUR_VERCEL_HOST \
+  PAYMENT_AUTHORIZATION_ADDRESS=… TREASURY_ADDRESS=… \
+  # …remaining contract addresses
+```
 
 ---
 
-## 4. Smoke + pause (smoke-and-pause)
+## 4. Re-onboard orgs (testnet state does not carry over)
 
-1. Create invoice / approved payable for **1 USDC** (or smallest unit you accept).
-2. Dual-control approve in console (if requiredApprovals > 0).
-3. Authorize → execute → wait `REQUIRED_CONFIRMATIONS` → reconcile.
-4. Confirm explorer links on OKLink mainnet.
-5. Force a failed execute (empty vault), confirm retry `/execute` on **same** payment id works after funding.
-6. Call `EmergencyControl.pause()` from multisig; confirm authorize/deposit blocked; unpause.
+1. Register production admin; create workspace (new funding wallet).  
+2. On-chain org + policy with **non-zero Cerebr processor** + controls.  
+3. Register & **verify** payees.  
+4. Fund funding wallet: tiny **native USDC** + OKB → deposit to vault.  
 
 ---
 
-## 5. Compliance reminder
+## 5. Smoke + pause (mandatory)
 
-Funding wallets are **custodial** (API holds encrypted private keys). Confirm legal posture for custody / money transmission before third-party funds.
+1. Payable for **1 USDC** (or minimum you accept).  
+2. Dual-control approve if required.  
+3. Authorize → execute → ≥3 confirmations → reconcile.  
+4. Confirm OKLink mainnet links.  
+5. Empty-vault failure → fund → **retry `/execute` on same payment id**.  
+6. Multisig `pause()` → confirm blocked → `unpause()`.  
+
+---
+
+## 6. Enterprise ops checklist
+
+- [ ] Relayer OKB top-up alerting  
+- [ ] Vault USDC balance alerting  
+- [ ] Log redaction (no raw keys / full memos in logs)  
+- [ ] Incident runbook: pause → revoke partner keys → rotate JWT/relayer  
+- [ ] Backup Postgres; encryption key escrow procedure  
+- [ ] CORS locked to console HTTPS origin(s)  
+
+---
+
+## 7. Compliance reminder
+
+Funding wallets are **custodial** (API holds encrypted keys). Confirm money-transmission / custody obligations before accepting third-party USDC.

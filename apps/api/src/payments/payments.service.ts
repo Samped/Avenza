@@ -16,6 +16,7 @@ import {
 } from "@avenza/shared";
 import {
   AVENZA_TAPEOUT,
+  XLAYER_MAINNET,
   XLAYER_TESTNET,
   explorerAddressUrl,
   explorerTxUrl,
@@ -548,7 +549,10 @@ export class PaymentsService {
       return payment;
     }
 
-    const required = Number(process.env.REQUIRED_CONFIRMATIONS || 1);
+    const chainIdForConf = Number(process.env.XLAYER_CHAIN_ID || 1952);
+    const required = Number(
+      process.env.REQUIRED_CONFIRMATIONS || (chainIdForConf === 196 ? 3 : 1),
+    );
     const confs = await getConfirmations(payment.transactionHash as `0x${string}`);
     if (confs < required) {
       return { ...payment, confirmations: confs, required };
@@ -1276,7 +1280,7 @@ export class PaymentsService {
       Boolean(process.env.RELAYER_PRIVATE_KEY);
     return {
       chainId,
-      usdc: process.env.USDC_TOKEN_ADDRESS || XLAYER_TESTNET.nativeUsdc,
+      usdc: process.env.USDC_TOKEN_ADDRESS || (chainId === 196 ? XLAYER_MAINNET.nativeUsdc : XLAYER_TESTNET.nativeUsdc),
       note: "Native USDC on X Layer — live authorize + treasury execute only",
       settlementMode: configured ? "onchain" : "blocked",
       tapeOut: {

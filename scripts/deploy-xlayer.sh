@@ -40,6 +40,17 @@ if [[ "$XLAYER_CHAIN_ID" == "196" ]]; then
     echo "Refusing mainnet deploy without CONFIRM_MAINNET_DEPLOY=yes" >&2
     exit 1
   fi
+  if [[ -z "${RELAYER_PRIVATE_KEY:-}" ]]; then
+    echo "ERROR: Mainnet requires a dedicated RELAYER_PRIVATE_KEY (do not omit)" >&2
+    exit 1
+  fi
+  _dep="${DEPLOYER_PRIVATE_KEY#0x}"
+  _rel="${RELAYER_PRIVATE_KEY#0x}"
+  if [[ "${_dep,,}" == "${_rel,,}" ]]; then
+    echo "ERROR: Mainnet RELAYER_PRIVATE_KEY must differ from DEPLOYER_PRIVATE_KEY" >&2
+    exit 1
+  fi
+  export TAPEOUT_PROCESSOR_ADDRESS="${TAPEOUT_PROCESSOR_ADDRESS:-0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF}"
 else
   OUT_JSON="${DEPLOY_OUT:-$ROOT/docs/hackathon/deployed-testnet.json}"
 fi

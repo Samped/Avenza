@@ -3,26 +3,7 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import type { NextFunction, Request, Response } from "express";
 import { AppModule } from "./app.module";
-
-function assertProdSecrets() {
-  if (process.env.NODE_ENV !== "production") return;
-  const required = [
-    "JWT_SECRET",
-    "ENCRYPTION_KEY",
-    "AVENZA_FIELD_ENCRYPTION_KEY",
-    "INTERNAL_WEBHOOK_TOKEN",
-  ] as const;
-  const missing = required.filter((k) => !process.env[k] || process.env[k] === "dev");
-  if (missing.length) {
-    throw new Error(`Missing required production secrets: ${missing.join(", ")}`);
-  }
-  if (process.env.ALLOW_TAPEOUT_LOCAL_FALLBACK === "true") {
-    throw new Error("ALLOW_TAPEOUT_LOCAL_FALLBACK must be false in production");
-  }
-  if (process.env.JWT_SECRET === "dev-insecure-jwt-secret-change-me-32") {
-    throw new Error("JWT_SECRET must not use the insecure default in production");
-  }
-}
+import { assertProductionAndMainnetGates, corsOrigins } from "./boot-guards";
 
 /** Simple fixed-window rate limit per IP (no extra dependency). */
 function rateLimitMiddleware(limit = 120, windowMs = 60_000) {
@@ -44,31 +25,53 @@ function rateLimitMiddleware(limit = 120, windowMs = 60_000) {
   };
 }
 
+function securityHeaders(req: Request, res: Response, next: NextFunction) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+  next();
+}
+
 async function bootstrap() {
-  assertProdSecrets();
+  assertProductionAndMainnetGates();
 
   const app = await NestFactory.create(AppModule, { rawBody: true });
   app.setGlobalPrefix("api/v1");
   app.enableCors({
-    origin: process.env.APP_URL || "http://localhost:3000",
+    origin: corsOrigins(),
     credentials: true,
   });
-  app.use(rateLimitMiddleware(Number(process.env.API_RATE_LIMIT_PER_MIN || 120)));
+  app.use(securityHeaders);
+  const rateLimit =
+    Number(process.env.XLAYER_CHAIN_ID) === 196
+      ? Number(process.env.API_RATE_LIMIT_PER_MIN || 60)
+      : Number(process.env.API_RATE_LIMIT_PER_MIN || 120);
+  app.use(rateLimitMiddleware(rateLimit));
 
-  const config = new DocumentBuilder()
-    .setTitle("AVENZA API")
-    .setDescription("Programmable B2B payments and financial operations")
-    .setVersion("1.0")
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api/docs", app, document);
+  const enableSwagger =
+    process.env.ENABLE_SWAGGER === "true" || process.env.NODE_ENV !== "production";
+  if (enableSwagger) {
+    const config = new DocumentBuilder()
+      .setTitle("AVENZA API")
+      .setDescription("Programmable B2B payments and financial operations")
+      .setVersion("1.0")
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup("api/docs", app, document);
+  }
 
   // Fly/Render inject PORT; local default remains 3001
   const port = Number(process.env.PORT || process.env.API_PORT || 3001);
   await app.listen(port, "0.0.0.0");
   // eslint-disable-next-line no-console
-  console.log(`AVENZA API listening on :${port}`);
+  console.log(
+    `AVENZA API listening on :${port} (chain=${process.env.XLAYER_CHAIN_ID || "unset"}, swagger=${enableSwagger})`,
+  );
 }
 
 bootstrap();

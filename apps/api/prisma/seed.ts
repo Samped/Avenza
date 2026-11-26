@@ -5,6 +5,16 @@ import { createHash } from "node:crypto";
 const prisma = new PrismaClient();
 
 async function main() {
+  if (
+    process.env.NODE_ENV === "production" &&
+    Number(process.env.XLAYER_CHAIN_ID) === 196 &&
+    process.env.ALLOW_MAINNET_SEED !== "yes"
+  ) {
+    throw new Error(
+      "Refusing db:seed on mainnet production. Create orgs via the console/API. Set ALLOW_MAINNET_SEED=yes only for a controlled bootstrap.",
+    );
+  }
+
   await prisma.auditEvent.deleteMany();
   await prisma.policyEvaluation.deleteMany();
   await prisma.payment.deleteMany();
