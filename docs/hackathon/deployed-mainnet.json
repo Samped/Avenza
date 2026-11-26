@@ -1,0 +1,8 @@
+{
+  "status": "not_deployed",
+  "chainId": 196,
+  "nativeUsdc": "0xB6CEceAB302E2E4948951eE7843FC24E92933061",
+  "tapeOutProcessor": "0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF",
+  "note": "Run CONFIRM_MAINNET_DEPLOY=yes ./scripts/deploy-xlayer.sh then replace this file with broadcast/Deploy.s.sol/196/run-latest.json",
+  "contracts": null
+}
