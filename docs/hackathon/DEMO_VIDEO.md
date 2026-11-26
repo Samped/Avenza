@@ -24,5 +24,5 @@ Record screen + voiceover. Target **2:30**.
 ## Recording tips
 
 - 1080p, browser zoom 90%, hide bookmarks
-- Use seed user `admin@avenza.demo` / `AvenzaDemo1!` or a fresh account
+- Use seed user `admin@avenza.demo` with your local `DEMO_SEED_PASSWORD`, or a fresh account
 - Prefer mute OS notifications

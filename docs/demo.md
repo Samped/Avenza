@@ -11,11 +11,15 @@ grep ALLOW_SIMULATED_SETTLEMENT .env || echo 'ALLOW_SIMULATED_SETTLEMENT=true' >
 
 ## Seed users
 
-| Email | Password | Role |
-|-------|----------|------|
-| admin@avenza.demo | AvenzaDemo1! | admin |
-| approver@avenza.demo | AvenzaDemo1! | approver |
-| payer@avenza.demo | AvenzaDemo1! | payer |
+Set `DEMO_SEED_PASSWORD` in `.env`, then seed. Sign in with:
+
+| Email | Role |
+|-------|------|
+| admin@avenza.demo | admin |
+| approver@avenza.demo | approver |
+| payer@avenza.demo | payer |
+
+Password = your `DEMO_SEED_PASSWORD` (not stored in git).
 
 ## Scripted acceptance
 

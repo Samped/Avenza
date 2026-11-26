@@ -62,10 +62,11 @@ docker compose up -d redis
 ```bash
 npm run db:generate
 npm run db:push
+# requires DEMO_SEED_PASSWORD in .env (≥10 chars)
 npm run db:seed
 ```
 
-Seed creates org **Avenza Demo Trading Ltd**, a verified payee, a TapeOut-bound payment policy, and demo users (see README).
+Seed creates org **Avenza Demo Trading Ltd**, a verified payee, a TapeOut-bound payment policy, and demo users (password = `DEMO_SEED_PASSWORD`).
 
 **Never run `db:seed` against a production database** — it wipes org data.
 
@@ -95,11 +96,13 @@ Or from the root: `npm run dev` (starts API + web + worker).
 
 ### Seed login
 
-| Email | Password | Role |
-|-------|----------|------|
-| `admin@avenza.demo` | `AvenzaDemo1!` | admin |
-| `approver@avenza.demo` | `AvenzaDemo1!` | approver |
-| `payer@avenza.demo` | `AvenzaDemo1!` | payer |
+Set `DEMO_SEED_PASSWORD` in `.env` before `npm run db:seed`. Accounts:
+
+| Email | Role |
+|-------|------|
+| `admin@avenza.demo` | admin |
+| `approver@avenza.demo` | approver |
+| `payer@avenza.demo` | payer |
 
 ## 4. Environment variables (cheat sheet)
 

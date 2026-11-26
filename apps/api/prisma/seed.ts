@@ -24,7 +24,13 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.idempotencyRecord.deleteMany();
 
-  const passwordHash = await bcrypt.hash("AvenzaDemo1!", 12);
+  const demoPassword = process.env.DEMO_SEED_PASSWORD;
+  if (!demoPassword || demoPassword.length < 10) {
+    throw new Error(
+      "Set DEMO_SEED_PASSWORD in your environment (≥10 chars) before running db:seed. Do not commit that value.",
+    );
+  }
+  const passwordHash = await bcrypt.hash(demoPassword, 12);
   const admin = await prisma.user.create({
     data: {
       email: "admin@avenza.demo",
@@ -123,10 +129,11 @@ async function main() {
         supplierId: supplier.id,
         destinationId: supplier.paymentDestinations[0]?.id,
         users: [
-          { email: "admin@avenza.demo", password: "AvenzaDemo1!", role: "admin" },
-          { email: "approver@avenza.demo", password: "AvenzaDemo1!", role: "approver" },
-          { email: "payer@avenza.demo", password: "AvenzaDemo1!", role: "payer" },
+          { email: "admin@avenza.demo", role: "admin" },
+          { email: "approver@avenza.demo", role: "approver" },
+          { email: "payer@avenza.demo", role: "payer" },
         ],
+        note: "Passwords were set from DEMO_SEED_PASSWORD (not printed).",
       },
       null,
       2,

@@ -84,13 +84,15 @@ Flow: **Create account → Create workspace → Console**. Workspace creation is
 
 ### Seed demo users
 
-After `npm run db:seed`:
+Set `DEMO_SEED_PASSWORD` in your local `.env` (≥10 chars), then `npm run db:seed`.
 
-| Email | Password | Role |
-|-------|----------|------|
-| `admin@avenza.demo` | `AvenzaDemo1!` | admin |
-| `approver@avenza.demo` | `AvenzaDemo1!` | approver |
-| `payer@avenza.demo` | `AvenzaDemo1!` | payer |
+| Email | Role |
+|-------|------|
+| `admin@avenza.demo` | admin |
+| `approver@avenza.demo` | approver |
+| `payer@avenza.demo` | payer |
+
+Passwords match `DEMO_SEED_PASSWORD` (never commit that value).
 
 ---
 

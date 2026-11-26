@@ -1,12 +1,13 @@
 # Public hackathon demo stack
 # Usage: docker compose -f docker-compose.demo.yml up --build
+# Requires .env with DATABASE credentials if you override trust defaults.
 services:
   postgres:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: avenza
-      POSTGRES_PASSWORD: avenza
       POSTGRES_DB: avenza
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - avenza_demo_pg:/var/lib/postgresql/data
     healthcheck:
@@ -29,7 +30,7 @@ services:
       target: api
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://avenza:avenza@postgres:5432/avenza
+      DATABASE_URL: postgresql://avenza@postgres:5432/avenza
       REDIS_URL: redis://redis:6379
       API_PORT: "3001"
       APP_URL: ${APP_URL:-http://localhost:3000}

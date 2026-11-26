@@ -2,9 +2,13 @@
 # MVP acceptance smoke: invoice → approve → authorize → settle → reconcile → audit
 set -euo pipefail
 API="${API_URL:-http://localhost:3001/api/v1}"
+if [ -z "${DEMO_SEED_PASSWORD:-}" ]; then
+  echo "Set DEMO_SEED_PASSWORD to the same value used for db:seed" >&2
+  exit 1
+fi
 
 TOKEN=$(curl -s -X POST "$API/auth/login" -H 'Content-Type: application/json' \
-  -d '{"email":"admin@avenza.demo","password":"AvenzaDemo1!"}' \
+  -d "$(DEMO_SEED_PASSWORD="$DEMO_SEED_PASSWORD" python3 -c 'import json,os; print(json.dumps({"email":"admin@avenza.demo","password":os.environ["DEMO_SEED_PASSWORD"]}))')" \
   | python3 -c 'import sys,json; print(json.load(sys.stdin)["accessToken"])')
 ORG=$(curl -s "$API/auth/me" -H "Authorization: Bearer $TOKEN" \
   | python3 -c 'import sys,json; print(json.load(sys.stdin)["organizations"][0]["id"])')
