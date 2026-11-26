@@ -64,8 +64,9 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document);
 
-  const port = Number(process.env.API_PORT || 3001);
-  await app.listen(port);
+  // Fly/Render inject PORT; local default remains 3001
+  const port = Number(process.env.PORT || process.env.API_PORT || 3001);
+  await app.listen(port, "0.0.0.0");
   // eslint-disable-next-line no-console
   console.log(`AVENZA API listening on :${port}`);
 }

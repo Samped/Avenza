@@ -1,0 +1,27 @@
+# AVENZA Nest API on Fly.io
+# Dashboard: Deploy from GitHub → this repo → use Dockerfile.api
+# CLI: fly launch --copy-config  OR  fly deploy --dockerfile Dockerfile.api
+
+app = "avenza-api"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile.api"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+  # Keep false on hosted demos; set TapeOut RPC in secrets
+  ALLOW_TAPEOUT_LOCAL_FALLBACK = "false"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
