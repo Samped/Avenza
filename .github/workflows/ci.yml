@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: avenza
+          POSTGRES_PASSWORD: avenza
+          POSTGRES_DB: avenza
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U avenza"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    env:
+      DATABASE_URL: postgresql://avenza:avenza@localhost:5432/avenza
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-test-jwt-secret-at-least-32-characters-long
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run build -w @avenza/shared
+      - run: npm run build -w @avenza/chain
+      - run: npm test
+      - run: npm run contracts:build
+      - run: npm run contracts:test
+      - run: npm run circuits:test
