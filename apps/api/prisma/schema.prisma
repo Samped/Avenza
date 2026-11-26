@@ -412,6 +412,12 @@ model Payment {
   authorizationId     String?
   authorizationTxHash String?
   transactionHash     String?
+  /// USDC minor — platform fee (bps + flat) charged on settle
+  platformFeeMinor    String?
+  /// USDC minor — gas recovery charged on settle
+  gasRecoveryMinor    String?
+  feeTxHash           String?
+  feeRecipient        String?
   policyVersion       Int?
   controlsVersion     Int?
   riskFlagsJson       String?

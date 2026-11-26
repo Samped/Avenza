@@ -92,6 +92,18 @@ export function assertProductionAndMainnetGates(): void {
   if (evalChain !== 196) {
     throw new Error("TAPEOUT_EVAL_CHAIN_ID must be 196 for mainnet TapeOut eval");
   }
+
+  const bps = Number(process.env.PLATFORM_FEE_BPS || 0);
+  const flat = BigInt(process.env.PLATFORM_FEE_FLAT_MINOR || "0");
+  const gas = BigInt(process.env.GAS_RECOVERY_USDC_MINOR || "0");
+  if (bps > 0 || flat > 0n || gas > 0n) {
+    const recip = process.env.PLATFORM_FEE_RECIPIENT || "";
+    if (!/^0x[a-fA-F0-9]{40}$/.test(recip)) {
+      throw new Error(
+        "PLATFORM_FEE_RECIPIENT must be a valid address when platform/gas fees are enabled",
+      );
+    }
+  }
 }
 
 export function requiredConfirmations(): number {

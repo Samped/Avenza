@@ -10,6 +10,9 @@ import {
   CreateDirectPaymentSchema,
   CreatePaymentBatchSchema,
   CreatePaymentSchema,
+  computeSettlementFees,
+  feesEnabled,
+  loadFeeConfigFromEnv,
   paymentCommitment,
   sha256Hex,
   type RiskFlags,
@@ -419,6 +422,15 @@ export class PaymentsService {
       });
       await this.touchInvoice(payment.invoiceId, { status: "PAYMENT_SUBMITTED" });
 
+      const feeConfig = loadFeeConfigFromEnv();
+      const feeBreakdown = computeSettlementFees(BigInt(payment.amountMinor), feeConfig);
+      const feeRecipientRaw = process.env.PLATFORM_FEE_RECIPIENT as `0x${string}` | undefined;
+      if (feesEnabled(feeConfig) && !feeRecipientRaw) {
+        throw new BadRequestException(
+          "PLATFORM_FEE_BPS / fee flats are set but PLATFORM_FEE_RECIPIENT is missing",
+        );
+      }
+
       const result = await executeSettlement({
         organizationOnChainId: org.onChainOrgId || org.id,
         paymentId: payment.id,
@@ -438,6 +450,9 @@ export class PaymentsService {
         existingAuthorizationId: retryAfterAuth
           ? (payment.authorizationId as string)
           : undefined,
+        platformFeeMinor: feeBreakdown.platformFeeMinor,
+        gasRecoveryMinor: feeBreakdown.gasRecoveryMinor,
+        feeRecipient: feesEnabled(feeConfig) ? feeRecipientRaw : undefined,
       });
 
       const updated = await this.prisma.payment.update({
@@ -446,6 +461,10 @@ export class PaymentsService {
           authorizationId: result.authorizationId,
           authorizationTxHash: result.authorizationTxHash,
           transactionHash: result.transactionHash,
+          platformFeeMinor: result.platformFeeMinor ?? feeBreakdown.platformFeeMinor.toString(),
+          gasRecoveryMinor: result.gasRecoveryMinor ?? feeBreakdown.gasRecoveryMinor.toString(),
+          feeTxHash: result.feeTxHash ?? null,
+          feeRecipient: result.feeRecipient ?? feeRecipientRaw ?? null,
           policyVersion: result.policyVersion,
           controlsVersion: result.controlsVersion,
           status: "PAYMENT_SUBMITTED",
@@ -465,6 +484,15 @@ export class PaymentsService {
           authorizationTxHash: result.authorizationTxHash,
           transactionHash: result.transactionHash,
           policyVersion: result.policyVersion,
+          fees: {
+            platformFeeMinor: feeBreakdown.platformFeeMinor.toString(),
+            gasRecoveryMinor: feeBreakdown.gasRecoveryMinor.toString(),
+            totalFeesMinor: feeBreakdown.totalFeesMinor.toString(),
+            totalDebitMinor: feeBreakdown.totalDebitMinor.toString(),
+            feeTxHash: result.feeTxHash,
+            feeRecipient: result.feeRecipient,
+            feeCollectionError: result.feeCollectionError,
+          },
         },
       });
 
@@ -495,9 +523,19 @@ export class PaymentsService {
           authorizationId: result.authorizationId,
           authorizationTxHash: result.authorizationTxHash,
           transactionHash: result.transactionHash,
+          fees: {
+            platformFeeMinor: feeBreakdown.platformFeeMinor.toString(),
+            gasRecoveryMinor: feeBreakdown.gasRecoveryMinor.toString(),
+            totalFeesMinor: feeBreakdown.totalFeesMinor.toString(),
+            totalDebitMinor: feeBreakdown.totalDebitMinor.toString(),
+            feeTxHash: result.feeTxHash ?? null,
+            feeRecipient: result.feeRecipient ?? null,
+            feeCollectionError: result.feeCollectionError ?? null,
+          },
           explorer: {
             authorize: explorerTxUrl(result.chainId, result.authorizationTxHash),
             settle: explorerTxUrl(result.chainId, result.transactionHash),
+            fee: result.feeTxHash ? explorerTxUrl(result.chainId, result.feeTxHash) : null,
           },
         },
       };
@@ -1300,6 +1338,28 @@ export class PaymentsService {
         controlsRegistry: process.env.CONTROLS_REGISTRY_ADDRESS || null,
         organizationRegistry: process.env.ORGANIZATION_REGISTRY_ADDRESS || null,
       },
+      fees: (() => {
+        try {
+          const cfg = loadFeeConfigFromEnv();
+          const sample = computeSettlementFees(100_000_000n, cfg); // 100 USDC sample
+          return {
+            platformFeeBps: cfg.platformFeeBps,
+            platformFeeFlatMinor: cfg.platformFeeFlatMinor.toString(),
+            gasRecoveryUsdcMinor: cfg.gasRecoveryMinor.toString(),
+            recipient: process.env.PLATFORM_FEE_RECIPIENT || null,
+            enabled: feesEnabled(cfg),
+            example100Usdc: {
+              platformFeeMinor: sample.platformFeeMinor.toString(),
+              gasRecoveryMinor: sample.gasRecoveryMinor.toString(),
+              totalFeesMinor: sample.totalFeesMinor.toString(),
+              totalDebitMinor: sample.totalDebitMinor.toString(),
+            },
+            note: "On each settle, org vault is debited vendor amount + fees in native USDC. Relayer still pays OKB gas.",
+          };
+        } catch (e) {
+          return { enabled: false, error: (e as Error).message };
+        }
+      })(),
       explorerTxBase:
         chainId === 196
           ? "https://www.oklink.com/xlayer/tx"

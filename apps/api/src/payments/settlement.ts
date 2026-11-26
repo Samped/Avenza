@@ -35,6 +35,10 @@ export type SettlementRequest = {
    * (authorize already succeeded; paymentSeen is set on-chain).
    */
   existingAuthorizationId?: string;
+  /** Platform fee + gas recovery (USDC minor) collected after vendor pay. */
+  platformFeeMinor?: bigint;
+  gasRecoveryMinor?: bigint;
+  feeRecipient?: `0x${string}`;
 };
 
 export type SettlementResult = {
@@ -45,6 +49,12 @@ export type SettlementResult = {
   policyVersion: number;
   controlsVersion: number;
   chainId: number;
+  feeTxHash?: string;
+  platformFeeMinor?: string;
+  gasRecoveryMinor?: string;
+  feeRecipient?: string;
+  /** Set when vendor pay succeeded but fee collect failed — retry fee off-band. */
+  feeCollectionError?: string;
 };
 
 export class SettlementError extends Error {
@@ -220,6 +230,36 @@ export async function executeSettlement(req: SettlementRequest): Promise<Settlem
     authorizationTxHash = "0x0" as `0x${string}`;
   }
 
+  const platformFee = req.platformFeeMinor ?? 0n;
+  const gasRecovery = req.gasRecoveryMinor ?? 0n;
+  const totalFees = platformFee + gasRecovery;
+  if (totalFees > 0n) {
+    if (!req.feeRecipient) {
+      throw new SettlementError(
+        "Fees configured but PLATFORM_FEE_RECIPIENT / feeRecipient is missing",
+      );
+    }
+  }
+
+  // Ensure vault can cover vendor payment + fees before broadcasting execute.
+  const available = await publicClient.readContract({
+    address: treasuryAddr,
+    abi: businessTreasuryAbi,
+    functionName: "available",
+    args: [orgId32],
+  });
+  const need = req.amountMinor + totalFees;
+  if (available < need) {
+    throw new SettlementError(
+      `Insufficient vault balance: need ${need.toString()} minor (payment + fees), available ${available.toString()}. Deposit native USDC then retry /execute.`,
+      {
+        authorizationId: req.existingAuthorizationId ? authorizationId : undefined,
+        policyVersion,
+        chainId,
+      },
+    );
+  }
+
   try {
     const transactionHash = await wallet.writeContract({
       address: treasuryAddr,
@@ -236,6 +276,22 @@ export async function executeSettlement(req: SettlementRequest): Promise<Settlem
     });
     await publicClient.waitForTransactionReceipt({ hash: transactionHash });
 
+    let feeTxHash: string | undefined;
+    let feeCollectionError: string | undefined;
+    if (totalFees > 0n && req.feeRecipient) {
+      try {
+        feeTxHash = await wallet.writeContract({
+          address: treasuryAddr,
+          abi: businessTreasuryAbi,
+          functionName: "collectFee",
+          args: [orgId32, req.feeRecipient, totalFees, paymentId32],
+        });
+        await publicClient.waitForTransactionReceipt({ hash: feeTxHash as `0x${string}` });
+      } catch (feeErr) {
+        feeCollectionError = (feeErr as Error).message;
+      }
+    }
+
     return {
       mode: "onchain",
       authorizationId,
@@ -244,6 +300,11 @@ export async function executeSettlement(req: SettlementRequest): Promise<Settlem
       policyVersion,
       controlsVersion,
       chainId,
+      feeTxHash,
+      platformFeeMinor: platformFee > 0n ? platformFee.toString() : undefined,
+      gasRecoveryMinor: gasRecovery > 0n ? gasRecovery.toString() : undefined,
+      feeRecipient: req.feeRecipient,
+      feeCollectionError,
     };
   } catch (e) {
     throw new SettlementError(

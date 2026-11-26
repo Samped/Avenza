@@ -55,6 +55,20 @@ type Network = {
   chainId: number;
   explorerTxBase: string;
   tapeOut: { paymentLimitCircuitId: string; explorerProcessor: string };
+  fees?: {
+    enabled: boolean;
+    platformFeeBps?: number;
+    platformFeeFlatMinor?: string;
+    gasRecoveryUsdcMinor?: string;
+    recipient?: string | null;
+    example100Usdc?: {
+      platformFeeMinor: string;
+      gasRecoveryMinor: string;
+      totalFeesMinor: string;
+      totalDebitMinor: string;
+    };
+    note?: string;
+  };
 };
 
 type AuthorizeResult = {
@@ -78,7 +92,15 @@ type ExecuteResult = Payment & {
     authorizationId: string;
     authorizationTxHash: string;
     transactionHash: string;
-    explorer: { authorize: string; settle: string };
+    fees?: {
+      platformFeeMinor: string;
+      gasRecoveryMinor: string;
+      totalFeesMinor: string;
+      totalDebitMinor: string;
+      feeTxHash: string | null;
+      feeCollectionError: string | null;
+    };
+    explorer: { authorize: string; settle: string; fee?: string | null };
   };
 };
 
@@ -422,7 +444,7 @@ export default function PaymentsPage() {
       <DashHeader
         eyebrow="Settlement"
         title="Payments"
-        lead="Send USDC on X Layer — invoices, direct payouts, or groups."
+        lead="Send USDC on X Layer — invoices, direct payouts, or groups. Vault covers vendor amount plus platform and gas-recovery fees."
         actions={
           <Link href="/app/settings?tab=workspace" className="btn-ghost btn-sm">
             Treasury
@@ -446,6 +468,17 @@ export default function PaymentsPage() {
               <a href={network.tapeOut.explorerProcessor} target="_blank" rel="noreferrer">
                 Circuit #{network.tapeOut.paymentLimitCircuitId}
               </a>
+            </>
+          ) : null}
+          {network?.fees?.enabled ? (
+            <>
+              <span>·</span>
+              <span>
+                Fees {network.fees.platformFeeBps ?? 0} bps
+                {network.fees.gasRecoveryUsdcMinor
+                  ? ` + gas ${Number(network.fees.gasRecoveryUsdcMinor) / 1e6} USDC`
+                  : ""}
+              </span>
             </>
           ) : null}
         </div>

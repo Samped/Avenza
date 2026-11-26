@@ -157,6 +157,18 @@ export const businessTreasuryAbi = [
     outputs: [],
   },
   {
+    type: "function",
+    name: "collectFee",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "organizationId", type: "bytes32" },
+      { name: "to", type: "address" },
+      { name: "amount", type: "uint256" },
+      { name: "paymentId", type: "bytes32" },
+    ],
+    outputs: [],
+  },
+  {
     type: "event",
     name: "PaymentExecuted",
     inputs: [
@@ -165,6 +177,16 @@ export const businessTreasuryAbi = [
       { name: "destination", type: "address", indexed: true },
       { name: "amount", type: "uint256", indexed: false },
       { name: "token", type: "address", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "FeeCollected",
+    inputs: [
+      { name: "organizationId", type: "bytes32", indexed: true },
+      { name: "to", type: "address", indexed: true },
+      { name: "amount", type: "uint256", indexed: false },
+      { name: "paymentId", type: "bytes32", indexed: true },
     ],
   },
 ] as const;

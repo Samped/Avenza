@@ -26,6 +26,12 @@ contract BusinessTreasury is Ownable, ReentrancyGuard {
 
     event Deposited(bytes32 indexed organizationId, address indexed from, uint256 amount);
     event Withdrawn(bytes32 indexed organizationId, address indexed to, uint256 amount);
+    event FeeCollected(
+        bytes32 indexed organizationId,
+        address indexed to,
+        uint256 amount,
+        bytes32 indexed paymentId
+    );
     event PaymentExecuted(
         bytes32 indexed organizationId,
         bytes32 indexed paymentId,
@@ -73,6 +79,24 @@ contract BusinessTreasury is Ownable, ReentrancyGuard {
         balances[organizationId] -= amount;
         IERC20(usdc).safeTransfer(to, amount);
         emit Withdrawn(organizationId, to, amount);
+    }
+
+    /// @notice Relayer/owner collects platform fee + gas recovery from an org vault (native USDC).
+    /// @dev Does not consume a PaymentAuthorization — fees are a platform debit, not a vendor pay.
+    function collectFee(
+        bytes32 organizationId,
+        address to,
+        uint256 amount,
+        bytes32 paymentId
+    ) external nonReentrant {
+        require(msg.sender == relayer || msg.sender == owner(), "unauthorized");
+        emergency.requireOperational(organizationId);
+        require(to != address(0), "to");
+        require(amount > 0, "amount");
+        require(amount <= available(organizationId), "insufficient");
+        balances[organizationId] -= amount;
+        IERC20(usdc).safeTransfer(to, amount);
+        emit FeeCollected(organizationId, to, amount, paymentId);
     }
 
     function executeAuthorizedPayment(

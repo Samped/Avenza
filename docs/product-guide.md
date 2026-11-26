@@ -88,6 +88,7 @@ Rules that matter for real funds:
 - Settlement needs contracts + relayer; otherwise mode is **blocked**.
 - After a failed settle, **retry execute on the same payment** — do not create a new payment (prevents double-pay).
 - Confirmations: `REQUIRED_CONFIRMATIONS` (prefer ≥ 3 on mainnet).
+- **Fees:** each settle debits the org vault for vendor amount **plus** platform fee (bps + flat) and gas-recovery USDC (`PLATFORM_FEE_*` / `GAS_RECOVERY_USDC_MINOR`). Relayer still pays OKB gas; you recover cost + margin in USDC to `PLATFORM_FEE_RECIPIENT`.
 
 ---
 

@@ -120,10 +120,25 @@ fly secrets set \
 
 ---
 
-## 6. Enterprise ops checklist
+## 6. Fees (how AVENZA makes money)
+
+On each successful settle the org vault is debited:
+
+| Debit | Source |
+|-------|--------|
+| Vendor amount | Payee |
+| Platform fee | `PLATFORM_FEE_BPS` + `PLATFORM_FEE_FLAT_MINOR` → `PLATFORM_FEE_RECIPIENT` |
+| Gas recovery | `GAS_RECOVERY_USDC_MINOR` → same recipient |
+
+Relayer still pays **OKB** gas; businesses repay you in **USDC**. Requires treasury `collectFee` (redeploy/upgrade suite if your live treasury predates this function).
+
+Suggested start: `PLATFORM_FEE_BPS=30`, flat `50000` ($0.05), gas recovery `150000` ($0.15).
+
+## 7. Enterprise ops checklist
 
 - [ ] Relayer OKB top-up alerting  
-- [ ] Vault USDC balance alerting  
+- [ ] Vault USDC balance alerting (must cover **payment + fees**)  
+- [ ] Fee recipient wallet monitored  
 - [ ] Log redaction (no raw keys / full memos in logs)  
 - [ ] Incident runbook: pause → revoke partner keys → rotate JWT/relayer  
 - [ ] Backup Postgres; encryption key escrow procedure  
@@ -131,6 +146,6 @@ fly secrets set \
 
 ---
 
-## 7. Compliance reminder
+## 8. Compliance reminder
 
-Funding wallets are **custodial** (API holds encrypted keys). Confirm money-transmission / custody obligations before accepting third-party USDC.
+Funding wallets are **custodial** (API holds encrypted keys). Confirm money-transmission / custody obligations before accepting third-party USDC. Disclose platform and gas-recovery fees in your customer terms.

@@ -203,4 +203,14 @@ contract PaymentFlowTest is Test {
         );
         vm.stopPrank();
     }
+
+    function testCollectPlatformFee() public {
+        address feeWallet = address(0xFEE);
+        bytes32 paymentId = keccak256("pay-fee");
+        uint256 vaultBefore = treasury.available(orgId);
+        vm.prank(relayer);
+        treasury.collectFee(orgId, feeWallet, 25e4, paymentId); // $0.25
+        assertEq(usdc.balanceOf(feeWallet), 25e4);
+        assertEq(treasury.available(orgId), vaultBefore - 25e4);
+    }
 }
