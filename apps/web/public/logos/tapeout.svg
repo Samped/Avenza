@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
+  <!-- coin face from official TapeOut palette -->
+  <circle cx="48" cy="48" r="46" fill="#f4f3ef"/>
+  <circle cx="48" cy="48" r="46" stroke="#1d1d1b" stroke-opacity="0.08" stroke-width="2"/>
+  <!-- official TapeOut chevron mark (from tapeout.net icon) -->
+  <g transform="translate(20 24) scale(0.055)">
+    <path fill="#192b53" fill-rule="evenodd" d="M0 0L472 256L472 599L0 856ZM41 72L41 786L431 575L431 283ZM1020 0L548 256L548 599L1020 856ZM979 72L979 786L589 575L589 283Z"/>
+  </g>
+</svg>
