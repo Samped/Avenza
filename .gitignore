@@ -1,0 +1,104 @@
+# ——— Dependencies ———
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# ——— Build / compile outputs ———
+dist/
+build/
+out/
+.next/
+.nuxt/
+.turbo/
+*.tsbuildinfo
+*.js.map
+*.d.ts.map
+
+# ——— Foundry / Solidity ———
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+contracts/artifacts/
+contracts/cache_forge/
+lcov.info
+gas-report.txt
+
+# ——— Env & secrets (keep *.example) ———
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+*.secret
+secrets/
+credentials.json
+service-account*.json
+
+# ——— Local databases & runtime data ———
+data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+apps/api/prisma/*.db
+apps/api/prisma/*.db-journal
+dump.rdb
+*.dump
+*.sql.gz
+
+# ——— Uploaded / generated documents ———
+storage/documents/**
+!storage/documents/.gitkeep
+storage/tmp/
+tmp/
+temp/
+.tmp/
+.cache/
+
+# ——— Logs & debug ———
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# ——— Test / coverage ———
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
+.vitest/
+jest-cache/
+
+# ——— OS / editor ———
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ——— Cursor / local agent (not needed to run) ———
+.cursor/
+.cursorignore
+
+# ——— Optional local tooling ———
+.vercel/
+.netlify/
+.serverless/
+.terraform/
+*.tfstate*
+.direnv/
+.eslintcache
+.stylelintcache
+.prettiercache
