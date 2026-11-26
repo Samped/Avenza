@@ -28,6 +28,67 @@ body {
   letter-spacing: -0.014em;
 }
 
+html[data-locale="zh"] body,
+.locale-zh {
+  font-family: var(--font-cjk), var(--font-sans), "Noto Sans SC", "DM Sans", sans-serif;
+  letter-spacing: 0;
+}
+html[data-locale="zh"] .font-display,
+.locale-zh .font-display {
+  font-family: var(--font-cjk), var(--font-display), Syne, sans-serif;
+}
+
+/* ——— Language switcher (global header) ——— */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 0.3rem;
+  overflow: hidden;
+  background: #fff;
+}
+.lang-switch-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--mute);
+  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.lang-switch-btn:hover {
+  color: var(--ink);
+  background: #f5f5f5;
+}
+.lang-switch-btn.is-active {
+  color: #fff;
+  background: #0a0a0a;
+}
+.lang-switch--light {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+}
+.lang-switch--light .lang-switch-btn {
+  color: rgba(255, 255, 255, 0.55);
+}
+.lang-switch--light .lang-switch-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+.lang-switch--light .lang-switch-btn.is-active {
+  color: #0a0a0a;
+  background: #fff;
+}
+.lang-switch--docs {
+  border-color: var(--docs-line, #e5e5e5);
+}
+
 ::selection {
   background: #0a0a0a;
   color: #fff;

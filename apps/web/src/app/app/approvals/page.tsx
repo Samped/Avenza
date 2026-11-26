@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { api, getOrgId } from "@/lib/api";
 import { DashEmpty, DashHeader, DashPage, DashPanel, DashStatus } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type Request = {
   id: string;
@@ -34,6 +35,7 @@ type VerifiedInvoice = {
 };
 
 export default function ApprovalsPage() {
+  const { t } = useI18n();
   const [items, setItems] = useState<Request[]>([]);
   const [policies, setPolicies] = useState<ApprovalPolicy[]>([]);
   const [verified, setVerified] = useState<VerifiedInvoice[]>([]);
@@ -140,9 +142,9 @@ export default function ApprovalsPage() {
   return (
     <DashPage>
       <DashHeader
-        eyebrow="Maker-checker"
-        title="Approvals"
-        lead="Approvals bind to payment commitments. Material changes invalidate them. Configure amount tiers, then clear the queue."
+        eyebrow={t("pages.approvalsEyebrow")}
+        title={t("pages.approvalsTitle")}
+        lead={t("pages.approvalsLead")}
         actions={
           <Link href="/app/invoices" className="btn-ghost">
             Invoices

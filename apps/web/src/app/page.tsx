@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { AvenzaLogo } from "@/components/AvenzaLogo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { OrbitLogos } from "@/components/OrbitLogos";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 export default function HomePage() {
+  const { t } = useI18n();
+
   return (
     <main className="hero-bw relative min-h-screen overflow-hidden text-white">
       <div className="hero-grain pointer-events-none absolute inset-0" />
@@ -17,14 +23,18 @@ export default function HomePage() {
             wordmarkClassName="text-[1.05rem] font-semibold tracking-[-0.03em]"
           />
           <div className="flex items-center gap-2 md:gap-3">
+            <LanguageSwitcher tone="light" />
             <Link href="/docs" className="px-3 py-2 text-sm text-white/55 transition hover:text-white">
-              Docs
+              {t("chrome.docs")}
             </Link>
             <Link href="/login" className="px-3 py-2 text-sm text-white/55 transition hover:text-white">
-              Sign in
+              {t("chrome.signIn")}
             </Link>
-            <Link href="/register" className="bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90">
-              Create account
+            <Link
+              href="/register"
+              className="bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-white/90"
+            >
+              {t("chrome.createAccount")}
             </Link>
           </div>
         </header>
@@ -32,21 +42,20 @@ export default function HomePage() {
         <section className="grid flex-1 items-center gap-12 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:py-0">
           <div className="max-w-xl">
             <p className="font-display text-[clamp(2rem,4.5vw,2.75rem)] font-semibold leading-[1.05] tracking-[-0.035em] animate-rise">
-              AVENZA
+              {t("brand")}
             </p>
             <h1 className="mt-6 text-[1.25rem] font-medium leading-snug tracking-[-0.02em] text-white/88 md:text-[1.45rem] animate-rise-late">
-              Programmable settlement for business payments.
+              {t("landing.headline")}
             </h1>
             <p className="mt-5 max-w-md text-[15px] leading-relaxed text-white/48 animate-rise-later">
-              Verify invoices. Enforce policy. Settle native USDC on X Layer — with TapeOut circuits
-              and smart-contract authorization before funds move.
+              {t("landing.lead")}
             </p>
             <div className="mt-10 flex flex-wrap gap-3 animate-rise-later">
               <Link href="/register" className="btn-light btn-lg">
-                Get started
+                {t("chrome.getStarted")}
               </Link>
               <Link href="/login" className="btn-invert btn-lg">
-                Sign in
+                {t("chrome.signIn")}
               </Link>
             </div>
           </div>
@@ -57,10 +66,10 @@ export default function HomePage() {
         </section>
 
         <footer className="flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/10 pt-6 font-mono text-[10px] uppercase tracking-[0.2em] text-white/35">
-          <span>Native USDC</span>
-          <span>X Layer</span>
-          <span>TapeOut</span>
-          <span className="ml-auto text-white/20">Financial operations infrastructure</span>
+          <span>{t("landing.nativeUsdc")}</span>
+          <span>{t("landing.xlayer")}</span>
+          <span>{t("landing.tapeout")}</span>
+          <span className="ml-auto text-white/20">{t("landing.footer")}</span>
         </footer>
       </div>
     </main>

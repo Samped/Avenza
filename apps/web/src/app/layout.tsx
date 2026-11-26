@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { DM_Sans, Syne, IBM_Plex_Mono } from "next/font/google";
+import { DM_Sans, Syne, IBM_Plex_Mono, Noto_Sans_SC } from "next/font/google";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 import "./globals.css";
 
 const display = Syne({
@@ -20,6 +21,12 @@ const mono = IBM_Plex_Mono({
   weight: ["400", "500"],
 });
 
+const cjk = Noto_Sans_SC({
+  subsets: ["latin"],
+  variable: "--font-cjk",
+  weight: ["400", "500", "700"],
+});
+
 export const metadata: Metadata = {
   title: "AVENZA",
   description: "Programmable B2B payments and financial operations infrastructure",
@@ -34,9 +41,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${display.variable} ${sans.variable} ${mono.variable} font-sans antialiased`}>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${display.variable} ${sans.variable} ${mono.variable} ${cjk.variable} font-sans antialiased`}
+      >
+        <LocaleProvider>{children}</LocaleProvider>
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api, getOrgId } from "@/lib/api";
 import { DashEmpty, DashHeader, DashPage, DashStatus } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type Payment = {
   id: string;
@@ -145,6 +146,7 @@ const FLOW_LABELS: Record<Exclude<FlowStep, "idle" | "error" | "done">, string> 
 };
 
 export default function PaymentsPage() {
+  const { t } = useI18n();
   const [mode, setMode] = useState<Mode>("invoice");
   const [items, setItems] = useState<Payment[]>([]);
   const [ready, setReady] = useState<Invoice[]>([]);
@@ -442,12 +444,12 @@ export default function PaymentsPage() {
   return (
     <DashPage className="pay-page">
       <DashHeader
-        eyebrow="Settlement"
-        title="Payments"
-        lead="Send USDC on X Layer — invoices, direct payouts, or groups. Vault covers vendor amount plus platform and gas-recovery fees."
+        eyebrow={t("pages.paymentsEyebrow")}
+        title={t("pages.paymentsTitle")}
+        lead={t("pages.paymentsLead")}
         actions={
           <Link href="/app/settings?tab=workspace" className="btn-ghost btn-sm">
-            Treasury
+            {t("pages.treasury")}
           </Link>
         }
       />

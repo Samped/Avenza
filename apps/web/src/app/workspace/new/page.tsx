@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { AuthFrame } from "@/components/AuthFrame";
 import { api, clearToken, getToken, setOrgId } from "@/lib/api";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 export default function NewWorkspacePage() {
   const router = useRouter();
+  const { t, locale } = useI18n();
   const [legalName, setLegalName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,36 +54,38 @@ export default function NewWorkspacePage() {
 
   if (!ready) {
     return (
-      <AuthFrame title="Create workspace">
-        <p className="text-sm text-mute">Checking your session…</p>
+      <AuthFrame title={t("workspace.title")}>
+        <p className="text-sm text-mute">{t("chrome.loadingWorkspace")}</p>
       </AuthFrame>
     );
   }
 
   return (
-    <AuthFrame title="Create workspace">
+    <AuthFrame title={t("workspace.title")}>
       <p className="mb-6 text-sm leading-relaxed text-mute">
-        You&apos;re signed in. Name the organization you want to operate in AVENZA.
+        {locale === "zh"
+          ? "您已登录。请填写要在 AVENZA 中运营的企业法定名称。"
+          : "You're signed in. Name the organization you want to operate in AVENZA."}
       </p>
       <form onSubmit={onSubmit} className="space-y-4">
         {error && <p className="border border-black bg-soft px-3 py-2 text-sm text-ink">{error}</p>}
         <div>
-          <label className="label">Organization legal name</label>
+          <label className="label">{t("workspace.legalName")}</label>
           <input
             className="input"
             value={legalName}
             onChange={(e) => setLegalName(e.target.value)}
             required
             minLength={2}
-            placeholder="Acme Holdings Ltd"
+            placeholder={locale === "zh" ? "示例控股有限公司" : "Acme Holdings Ltd"}
             autoFocus
           />
         </div>
         <button className="btn-dark w-full py-3" disabled={loading}>
-          {loading ? "Creating workspace…" : "Create workspace"}
+          {loading ? t("workspace.creating") : t("workspace.submit")}
         </button>
         <p className="text-sm text-mute">
-          Wrong account?{" "}
+          {locale === "zh" ? "账号不对？" : "Wrong account?"}{" "}
           <button
             type="button"
             className="btn-quiet btn-sm"
@@ -90,7 +94,7 @@ export default function NewWorkspacePage() {
               router.push("/login");
             }}
           >
-            Sign out
+            {t("chrome.signOut")}
           </button>
         </p>
       </form>

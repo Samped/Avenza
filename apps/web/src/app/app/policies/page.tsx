@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { api, getOrgId } from "@/lib/api";
 import { DashEmpty, DashHeader, DashPage, DashPanel, DashStatus } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type Policy = {
   id: string;
@@ -83,6 +84,7 @@ function formatUsdc(minor: string) {
 }
 
 export default function PoliciesPage() {
+  const { t } = useI18n();
   const [items, setItems] = useState<Policy[]>([]);
   const [network, setNetwork] = useState<Network | null>(null);
   const [controls, setControls] = useState<Controls | null>(null);
@@ -191,9 +193,9 @@ export default function PoliciesPage() {
   return (
     <DashPage>
       <DashHeader
-        eyebrow="Programmable controls"
-        title="Controls"
-        lead="On-chain ControlsRegistry gates auto-approve, dual-control, and holds. TapeOut spend limits still bind to PaymentPolicyRegistry before settlement."
+        eyebrow={t("pages.controlsEyebrow")}
+        title={t("pages.controlsTitle")}
+        lead={t("pages.controlsLead")}
       />
 
       {network ? (

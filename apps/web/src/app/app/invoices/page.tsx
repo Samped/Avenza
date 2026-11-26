@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, getOrgId } from "@/lib/api";
 import { DashEmpty, DashHeader, DashPage, DashPanel, DashStatus } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 import { InvoiceUploadModal } from "@/components/InvoiceUploadModal";
 
 type Invoice = {
@@ -23,6 +24,7 @@ function statusTone(status: string): "ok" | "wait" | "bad" | "neutral" {
 }
 
 export default function InvoicesPage() {
+  const { t } = useI18n();
   const [items, setItems] = useState<Invoice[]>([]);
   const [uploadOpen, setUploadOpen] = useState(false);
 
@@ -39,9 +41,9 @@ export default function InvoicesPage() {
   return (
     <DashPage>
       <DashHeader
-        eyebrow="Accounts payable"
-        title="Invoices"
-        lead="Upload, extract, and verify before money moves. Extraction assists review — it never authorizes settlement."
+        eyebrow={t("pages.invoicesEyebrow")}
+        title={t("pages.invoicesTitle")}
+        lead={t("pages.invoicesLead")}
         actions={
           <>
             <Link href="/app/purchase-orders" className="btn-ghost">

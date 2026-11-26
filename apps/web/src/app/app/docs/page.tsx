@@ -1,19 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { DOC_CATALOG } from "@/lib/docs";
-
-export const metadata = {
-  title: "Docs · AVENZA",
-  description: "In-console documentation for AVENZA operators and integrators",
-};
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 export default function AppDocsIndexPage() {
+  const { t } = useI18n();
+
   return (
     <div className="app-docs">
       <header className="dash-header">
-        <p className="dash-eyebrow">Reference</p>
-        <h1 className="dash-title">Docs</h1>
+        <p className="dash-eyebrow">{t("pages.docsEyebrow")}</p>
+        <h1 className="dash-title">{t("pages.docsTitle")}</h1>
         <p className="dash-lead">
-          Setup, console workflows, API, contracts, and TapeOut on X Layer — same catalog as public{" "}
+          {t("pages.docsLead")}{" "}
           <Link href="/docs" className="app-docs-inline-link">
             /docs
           </Link>

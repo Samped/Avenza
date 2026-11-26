@@ -6,6 +6,7 @@ import { api, getOrgId } from "@/lib/api";
 import { FundDepositModal } from "@/components/FundDepositModal";
 import { InvoiceUploadModal } from "@/components/InvoiceUploadModal";
 import { PayoutModal } from "@/components/PayoutModal";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 type Invoice = {
   id: string;
@@ -105,14 +106,8 @@ function statusTone(status: string) {
   return "neutral";
 }
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
-}
-
 export default function DashboardPage() {
+  const { t } = useI18n();
   const [org, setOrg] = useState<Org | null>(null);
   const [network, setNetwork] = useState<Network | null>(null);
   const [treasury, setTreasury] = useState<TreasurySummary | null>(null);
@@ -300,20 +295,31 @@ export default function DashboardPage() {
         <div className="home-top-copy">
           <p className="home-greeting">
             <span className={`home-live${attentionCount ? " is-alert" : ""}`} />
-            {loading ? "Syncing…" : `${greeting()} · ${attentionCount ? `${attentionCount} need attention` : "All clear"}`}
+            {loading
+              ? t("pages.syncing")
+              : `${(() => {
+                  const h = new Date().getHours();
+                  if (h < 12) return t("pages.goodMorning");
+                  if (h < 18) return t("pages.goodAfternoon");
+                  return t("pages.goodEvening");
+                })()} · ${
+                  attentionCount
+                    ? `${attentionCount} ${t("pages.needAttention")}`
+                    : t("pages.allClear")
+                }`}
           </p>
-          <h1 className="home-title">{org?.legalName || "Workspace"}</h1>
-          <p className="home-lead">Native USDC settlement on X Layer — pay, fund, approve.</p>
+          <h1 className="home-title">{org?.legalName || t("pages.workspaceFallback")}</h1>
+          <p className="home-lead">{t("pages.overviewLead")}</p>
         </div>
         <div className="home-actions">
           <button type="button" className="home-btn home-btn-dark" onClick={() => openPayout("direct")}>
-            Pay client
+            {t("pages.payClient")}
           </button>
           <button type="button" className="home-btn home-btn-line" onClick={() => openPayout("group")}>
-            Group pay
+            {t("pages.groupPay")}
           </button>
           <button type="button" className="home-btn home-btn-line" onClick={() => setInvoiceOpen(true)}>
-            New invoice
+            {t("pages.newInvoice")}
           </button>
         </div>
       </header>

@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, getOrgId } from "@/lib/api";
 import { DashEmpty, DashHeader, DashPage, DashPanel, DashStatus } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 import { FundDepositModal } from "@/components/FundDepositModal";
 
 type Tab = "workspace" | "developers" | "integrations" | "people" | "activity";
@@ -114,6 +115,7 @@ function readTab(): Tab {
 }
 
 export default function SettingsPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [tab, setTabState] = useState<Tab>("workspace");
 
@@ -390,9 +392,9 @@ export default function SettingsPage() {
   return (
     <DashPage>
       <DashHeader
-        eyebrow="Workspace"
-        title="Settings"
-        lead="Organization, Partner API, ERP connectors, people, and audit — one place."
+        eyebrow={t("pages.settingsEyebrow")}
+        title={t("pages.settingsTitle")}
+        lead={t("pages.settingsLead")}
         actions={
           <button type="button" className="btn-dark" onClick={() => setFundOpen(true)}>
             Fund treasury

@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { api, getOrgId } from "@/lib/api";
 import { DashEmpty, DashHeader, DashPage, DashPanel, DashStatus } from "@/components/dash";
+import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 const DEFAULT_CHAIN = 1952;
 const DEFAULT_USDC = "0xDec90b78111Ba2fc6FC6d84d8B9ec159A2d4b9B3";
@@ -21,6 +22,7 @@ function shortAddr(addr: string) {
 }
 
 export default function SuppliersPage() {
+  const { t } = useI18n();
   const [items, setItems] = useState<Supplier[]>([]);
   const [name, setName] = useState("");
   const [wallet, setWallet] = useState("");
@@ -77,9 +79,9 @@ export default function SuppliersPage() {
   return (
     <DashPage>
       <DashHeader
-        eyebrow="Counterparties"
-        title="Payees"
-        lead="Register suppliers, clients, and businesses. Lock payment destinations — changes invalidate prior approvals."
+        eyebrow={t("pages.payeesEyebrow")}
+        title={t("pages.payeesTitle")}
+        lead={t("pages.payeesLead")}
       />
 
       <DashPanel title="Register payee">
