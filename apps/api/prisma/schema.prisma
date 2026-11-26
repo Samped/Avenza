@@ -1,0 +1,609 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MemberRole {
+  admin
+  approver
+  payer
+  auditor
+  member
+}
+
+enum MemberStatus {
+  active
+  invited
+  disabled
+}
+
+enum OrgStatus {
+  active
+  suspended
+  closed
+}
+
+enum VerificationStatus {
+  pending
+  verified
+  rejected
+  needs_review
+}
+
+enum RiskStatus {
+  clear
+  watch
+  blocked
+}
+
+enum PayeeType {
+  supplier
+  client
+  business
+}
+
+enum PaymentKind {
+  invoice
+  direct
+  batch_line
+}
+
+enum BatchStatus {
+  DRAFT
+  AWAITING_APPROVAL
+  APPROVED
+  SETTLING
+  COMPLETED
+  PARTIAL_FAILED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SUBMITTED
+  EXTRACTING
+  UNDER_REVIEW
+  REJECTED
+  VERIFIED
+  ON_HOLD
+  AWAITING_APPROVAL
+  APPROVED
+  POLICY_EVALUATION
+  POLICY_REJECTED
+  AUTHORIZED
+  PAYMENT_SUBMITTED
+  PAYMENT_FAILED
+  PAYMENT_CONFIRMED
+  RECONCILIATION_PENDING
+  COMPLETED
+  CANCELLED
+  EXPIRED
+  DISPUTED
+  REFUND_PENDING
+  REFUNDED
+  MANUAL_REVIEW
+}
+
+enum PaymentStatus {
+  DRAFT
+  AWAITING_APPROVAL
+  APPROVED
+  POLICY_EVALUATION
+  POLICY_REJECTED
+  AUTHORIZED
+  PAYMENT_SUBMITTED
+  PAYMENT_FAILED
+  PAYMENT_CONFIRMED
+  RECONCILIATION_PENDING
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum ApprovalDecisionType {
+  approve
+  reject
+}
+
+enum PolicyStatus {
+  active
+  disabled
+}
+
+enum EvaluationStatus {
+  pending
+  passed
+  failed
+  error
+}
+
+model Organization {
+  id                 String   @id @default(uuid())
+  legalName          String
+  registrationNumber String?
+  country            String?
+  businessEmail      String?
+  status             OrgStatus @default(active)
+  onChainOrgId       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  members              OrganizationMember[]
+  suppliers            Supplier[]
+  invoices             Invoice[]
+  purchaseOrders       PurchaseOrder[]
+  approvalPolicies     ApprovalPolicy[]
+  paymentPolicies      PaymentPolicy[]
+  payments             Payment[]
+  paymentBatches       PaymentBatch[]
+  auditEvents          AuditEvent[]
+  treasuryConfig       TreasuryConfig?
+  reconciliationRuns   ReconciliationRun[]
+  erpConnections       ErpConnection[]
+  apiKeys              ApiKey[]
+  webhookEndpoints     WebhookEndpoint[]
+  controlsPublications ControlsPublication[]
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  fullName      String
+  accountStatus String   @default("active")
+  mfaEnabled    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  memberships         OrganizationMember[]
+  approvalDecisions   ApprovalRecord[]
+  payoutApprovals     PaymentApprovalRecord[]
+  auditEvents         AuditEvent[]
+}
+
+model OrganizationMember {
+  id             String       @id @default(uuid())
+  organizationId String
+  userId         String
+  role           MemberRole
+  status         MemberStatus @default(active)
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+model Supplier {
+  id                 String             @id @default(uuid())
+  organizationId     String
+  legalName          String
+  supplierCode       String?
+  contactEmail       String?
+  contactPhone       String?
+  /// supplier | client | business — all are verified payees
+  payeeType          PayeeType          @default(supplier)
+  verificationStatus VerificationStatus @default(pending)
+  riskStatus         RiskStatus         @default(clear)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  organization       Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paymentDestinations SupplierPaymentDestination[]
+  invoices           Invoice[]
+  purchaseOrders     PurchaseOrder[]
+  payments           Payment[]
+
+  @@unique([organizationId, supplierCode])
+  @@index([organizationId, legalName])
+  @@index([organizationId, payeeType])
+}
+
+model SupplierPaymentDestination {
+  id                 String             @id @default(uuid())
+  supplierId         String
+  chainId            Int
+  tokenAddress       String
+  walletAddress      String
+  verificationStatus VerificationStatus @default(pending)
+  approvedAt         DateTime?
+  approvedBy         String?
+  version            Int                @default(1)
+  active             Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+
+  supplier Supplier  @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@index([supplierId, active])
+}
+
+model PurchaseOrder {
+  id                  String   @id @default(uuid())
+  organizationId      String
+  supplierId          String
+  purchaseOrderNumber String
+  totalAmountMinor    String
+  currency            String
+  status              String   @default("open")
+  createdAt           DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  supplier     Supplier     @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  invoices     Invoice[]
+
+  @@unique([organizationId, purchaseOrderNumber])
+}
+
+model Invoice {
+  id                    String        @id @default(uuid())
+  organizationId        String
+  supplierId            String?
+  invoiceNumber         String?
+  invoiceDate           DateTime?
+  dueDate               DateTime?
+  currency              String        @default("USDC")
+  subtotalMinor         String?
+  taxAmountMinor        String?
+  totalAmountMinor      String?
+  documentStorageKey    String?
+  documentHash          String?
+  status                InvoiceStatus @default(DRAFT)
+  purchaseOrderId       String?
+  paymentDestinationId  String?
+  extractionJson        String?
+  verificationJson      String?
+  riskJson              String?
+  controlsDecisionJson  String?
+  holdReason            String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  organization       Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  supplier           Supplier?                    @relation(fields: [supplierId], references: [id])
+  purchaseOrder      PurchaseOrder?               @relation(fields: [purchaseOrderId], references: [id])
+  paymentDestination SupplierPaymentDestination?  @relation(fields: [paymentDestinationId], references: [id])
+  lineItems          InvoiceLineItem[]
+  approvalRequests   ApprovalRequest[]
+  payments           Payment[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, invoiceNumber])
+}
+
+model InvoiceLineItem {
+  id          String @id @default(uuid())
+  invoiceId   String
+  description String
+  quantity    String
+  unitPrice   String
+  tax         String @default("0")
+  total       String
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model ApprovalPolicy {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  organization Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  versions     ApprovalPolicyVersion[]
+}
+
+model ApprovalPolicyVersion {
+  id        String   @id @default(uuid())
+  policyId  String
+  version   Int
+  rulesJson String
+  createdAt DateTime @default(now())
+
+  policy   ApprovalPolicy    @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  requests ApprovalRequest[]
+
+  @@unique([policyId, version])
+}
+
+model ApprovalRequest {
+  id                String        @id @default(uuid())
+  invoiceId         String
+  organizationId    String
+  policyVersionId   String
+  /// Actor who submitted for approval — blocked from deciding under dual-control SoD
+  submittedById     String?
+  requiredApprovals Int
+  currentApprovals  Int           @default(0)
+  status            String        @default("pending")
+  paymentCommitment String
+  expiresAt         DateTime
+  createdAt         DateTime      @default(now())
+
+  invoice       Invoice                @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  policyVersion ApprovalPolicyVersion  @relation(fields: [policyVersionId], references: [id])
+  records       ApprovalRecord[]
+}
+
+model ApprovalRecord {
+  id                String               @id @default(uuid())
+  approvalRequestId String
+  approverId        String
+  decision          ApprovalDecisionType
+  paymentCommitment String
+  note              String?
+  signatureReference String?
+  createdAt         DateTime             @default(now())
+
+  request  ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+  approver User            @relation(fields: [approverId], references: [id])
+
+  @@unique([approvalRequestId, approverId])
+}
+
+model PaymentPolicy {
+  id                   String       @id @default(uuid())
+  organizationId       String
+  policyName           String
+  version              Int          @default(1)
+  processorAddress     String?
+  circuitId            String?
+  policyHash           String
+  dailySpendLimitMinor String
+  perPaymentLimitMinor String
+  status               PolicyStatus @default(active)
+  createdAt            DateTime     @default(now())
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  evaluations  PolicyEvaluation[]
+
+  @@unique([organizationId, policyName, version])
+}
+
+model PaymentBatch {
+  id                  String      @id @default(uuid())
+  organizationId      String
+  memo                String?
+  status              BatchStatus @default(DRAFT)
+  currency            String      @default("USDC")
+  totalAmountMinor    String
+  lineCount           Int
+  requiredApprovals   Int         @default(1)
+  currentApprovals    Int         @default(0)
+  idempotencyKey      String
+  paymentCommitment   String?
+  controlsVersion     Int?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  payments     Payment[]
+  approvals    PaymentApprovalRecord[]
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, status])
+}
+
+model Payment {
+  id                  String        @id @default(uuid())
+  organizationId      String
+  invoiceId           String?
+  batchId             String?
+  kind                PaymentKind   @default(invoice)
+  supplierId          String
+  amountMinor         String
+  currency            String
+  chainId             Int
+  tokenAddress        String
+  destinationAddress  String
+  memo                String?
+  status              PaymentStatus @default(DRAFT)
+  requiredApprovals   Int           @default(0)
+  currentApprovals    Int           @default(0)
+  idempotencyKey      String
+  paymentCommitment   String?
+  authorizationId     String?
+  authorizationTxHash String?
+  transactionHash     String?
+  policyVersion       Int?
+  controlsVersion     Int?
+  riskFlagsJson       String?
+  createdAt           DateTime      @default(now())
+  completedAt         DateTime?
+
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoice      Invoice?                 @relation(fields: [invoiceId], references: [id])
+  batch        PaymentBatch?            @relation(fields: [batchId], references: [id])
+  supplier     Supplier                 @relation(fields: [supplierId], references: [id])
+  evaluations  PolicyEvaluation[]
+  approvals    PaymentApprovalRecord[]
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([invoiceId])
+  @@index([batchId])
+  @@index([kind, status])
+  @@index([transactionHash])
+}
+
+model PaymentApprovalRecord {
+  id         String               @id @default(uuid())
+  paymentId  String?
+  batchId    String?
+  approverId String
+  decision   ApprovalDecisionType
+  note       String?
+  createdAt  DateTime             @default(now())
+
+  payment  Payment?      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  batch    PaymentBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  approver User          @relation(fields: [approverId], references: [id])
+
+  @@unique([paymentId, approverId])
+  @@unique([batchId, approverId])
+  @@index([paymentId])
+  @@index([batchId])
+}
+
+model PolicyEvaluation {
+  id              String           @id @default(uuid())
+  paymentId       String
+  policyId        String
+  policyVersion   Int
+  inputCommitment String
+  outputData      String
+  evaluationStatus EvaluationStatus @default(pending)
+  evaluatedAt     DateTime?
+
+  payment Payment       @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  policy  PaymentPolicy @relation(fields: [policyId], references: [id])
+}
+
+model TreasuryConfig {
+  id                    String   @id @default(uuid())
+  organizationId        String   @unique
+  /// Shared BusinessTreasury contract that holds per-org balances.
+  vaultAddress          String?
+  onChainOrgId          String?
+  /// Dedicated EOA for this workspace — receive USDC / OKB, then deposit into the vault.
+  fundingWalletAddress  String?
+  /// AES-GCM encrypted private key (never returned to clients).
+  fundingWalletKeyEnc   String?
+  chainId               Int?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id           String   @id @default(uuid())
+  organizationId String
+  actorId      String?
+  eventType    String
+  entityType   String
+  entityId     String
+  eventPayload String
+  previousHash String
+  currentHash  String
+  createdAt    DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User?        @relation(fields: [actorId], references: [id])
+
+  @@index([organizationId, createdAt])
+}
+
+model ReconciliationRun {
+  id             String   @id @default(uuid())
+  organizationId String
+  status         String   @default("pending")
+  summaryJson    String?
+  createdAt      DateTime @default(now())
+  completedAt    DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model ErpConnection {
+  id             String   @id @default(uuid())
+  organizationId String
+  provider       String
+  baseUrl        String
+  credentialsEnc String?
+  status         String   @default("active")
+  lastSyncAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+}
+
+model ControlsPublication {
+  id               String   @id @default(uuid())
+  organizationId   String
+  version          Int
+  rulesJson        String
+  configHash       String
+  onChainTxHash    String?
+  onChainVersion   Int?
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, version])
+  @@index([organizationId, active])
+}
+
+model ApiKey {
+  id             String    @id @default(uuid())
+  organizationId String
+  name           String
+  keyPrefix      String
+  keyHash        String
+  scopesJson     String
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([keyHash])
+}
+
+model WebhookEndpoint {
+  id             String   @id @default(uuid())
+  organizationId String
+  url            String
+  description    String?
+  secret         String
+  eventsJson     String
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deliveries   WebhookDelivery[]
+
+  @@index([organizationId, active])
+}
+
+model WebhookDelivery {
+  id         String    @id @default(uuid())
+  endpointId String
+  eventType  String
+  payloadJson String
+  status     String    @default("pending")
+  attempts   Int       @default(0)
+  lastError  String?
+  nextAttemptAt DateTime?
+  deliveredAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([endpointId, createdAt])
+}
+
+model IdempotencyRecord {
+  id             String   @id @default(uuid())
+  organizationId String
+  key            String
+  requestHash    String
+  responseJson   String
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, key])
+}
