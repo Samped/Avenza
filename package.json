@@ -1,0 +1,35 @@
+{
+  "name": "avenza",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AVENZA — programmable B2B payments and financial operations on X Layer",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @avenza/api & npm run dev -w @avenza/web & npm run dev -w @avenza/worker",
+    "dev:api": "npm run dev -w @avenza/api",
+    "dev:web": "npm run dev -w @avenza/web",
+    "dev:worker": "npm run dev -w @avenza/worker",
+    "build": "npm run build -w @avenza/shared && npm run build -w @avenza/chain && npm run build -w @avenza/cli && npm run build -w @avenza/api && npm run build -w @avenza/web && npm run build -w @avenza/worker",
+    "lint": "npm run lint -w @avenza/api --if-present && npm run lint -w @avenza/web --if-present",
+    "test": "npm run test -w @avenza/shared --if-present && npm run test -w @avenza/api --if-present && npm run test -w @avenza/chain --if-present",
+    "db:generate": "npm run prisma:generate -w @avenza/api",
+    "db:migrate": "npm run prisma:migrate -w @avenza/api",
+    "db:push": "npm run prisma:push -w @avenza/api",
+    "db:seed": "npm run prisma:seed -w @avenza/api",
+    "db:up": "tsx scripts/embedded-pg.ts",
+    "contracts:build": "cd contracts && forge build",
+    "contracts:test": "cd contracts && forge test",
+    "circuits:test": "node --import tsx --test circuits/src/*.test.ts packages/chain/src/*.test.ts packages/shared/src/*.test.ts"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "embedded-postgres": "^18.7.0-beta.19",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
