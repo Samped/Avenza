@@ -17,6 +17,7 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --radius: 0.5rem;
   --radius-sm: 0.35rem;
+  --font-cjk: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 body {

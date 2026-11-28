@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { DM_Sans, Syne, IBM_Plex_Mono, Noto_Sans_SC } from "next/font/google";
+import { cookies } from "next/headers";
+import { DM_Sans, Syne, IBM_Plex_Mono } from "next/font/google";
 import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
+import { isLocale, LOCALE_STORAGE_KEY, type Locale } from "@/lib/i18n/dictionaries";
 import "./globals.css";
 
 const display = Syne({
@@ -21,12 +23,6 @@ const mono = IBM_Plex_Mono({
   weight: ["400", "500"],
 });
 
-const cjk = Noto_Sans_SC({
-  subsets: ["latin"],
-  variable: "--font-cjk",
-  weight: ["400", "500", "700"],
-});
-
 export const metadata: Metadata = {
   title: "AVENZA",
   description: "Programmable B2B payments and financial operations infrastructure",
@@ -39,13 +35,30 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+async function readLocaleCookie(): Promise<Locale> {
+  const jar = await cookies();
+  const raw = jar.get(LOCALE_STORAGE_KEY)?.value;
+  return isLocale(raw) ? raw : "en";
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const initialLocale = await readLocaleCookie();
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${display.variable} ${sans.variable} ${mono.variable} ${cjk.variable} font-sans antialiased`}
-      >
-        <LocaleProvider>{children}</LocaleProvider>
+    <html
+      lang={initialLocale === "zh" ? "zh-CN" : "en"}
+      data-locale={initialLocale}
+      suppressHydrationWarning
+    >
+      <head>
+        {/* Runtime stylesheet — avoids next/font Google fetch failures at build time */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap"
+        />
+      </head>
+      <body className={`${display.variable} ${sans.variable} ${mono.variable} font-sans antialiased`}>
+        <LocaleProvider initialLocale={initialLocale}>{children}</LocaleProvider>
       </body>
     </html>
   );

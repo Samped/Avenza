@@ -26,32 +26,47 @@ type I18nContextValue = {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-function readStoredLocale(): Locale {
-  if (typeof window === "undefined") return "en";
-  const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-  if (isLocale(stored)) return stored;
-  const nav = window.navigator.language?.toLowerCase() || "";
-  if (nav.startsWith("zh")) return "zh";
-  return "en";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+function writeLocaleCookie(locale: Locale) {
+  document.cookie = `${LOCALE_STORAGE_KEY}=${locale};path=/;max-age=${COOKIE_MAX_AGE};samesite=lax`;
 }
 
-export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en");
-  const [ready, setReady] = useState(false);
+function applyDocumentLocale(locale: Locale) {
+  document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
+  document.documentElement.dataset.locale = locale;
+}
+
+function readStoredLocale(): Locale | null {
+  if (typeof window === "undefined") return null;
+  const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+  return isLocale(stored) ? stored : null;
+}
+
+export function LocaleProvider({
+  children,
+  initialLocale = "en",
+}: {
+  children: ReactNode;
+  initialLocale?: Locale;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
   useEffect(() => {
-    const next = readStoredLocale();
-    setLocaleState(next);
-    document.documentElement.lang = next === "zh" ? "zh-CN" : "en";
-    document.documentElement.dataset.locale = next;
-    setReady(true);
+    const stored = readStoredLocale();
+    // Prefer existing localStorage when cookie/SSR was still default (one-time migrate).
+    const next = stored ?? locale;
+    if (next !== locale) setLocaleState(next);
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
+    writeLocaleCookie(next);
+    applyDocumentLocale(next);
   }, []);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
-    document.documentElement.lang = next === "zh" ? "zh-CN" : "en";
-    document.documentElement.dataset.locale = next;
+    writeLocaleCookie(next);
+    applyDocumentLocale(next);
   }, []);
 
   const t = useCallback(
@@ -66,7 +81,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   return (
     <I18nContext.Provider value={value}>
-      <div className={ready && locale === "zh" ? "locale-zh" : "locale-en"}>{children}</div>
+      <div className={locale === "zh" ? "locale-zh" : "locale-en"}>{children}</div>
     </I18nContext.Provider>
   );
 }

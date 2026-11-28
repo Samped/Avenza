@@ -191,7 +191,8 @@ export default function SettingsPage() {
 
   const curlExample = useMemo(() => {
     const key = rawKey || "avz_live_…";
-    return `curl -s http://localhost:3001/api/v1/invoices \\\n  -H "Authorization: Bearer ${key}"`;
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+    return `curl -s ${base}/invoices \\\n  -H "Authorization: Bearer ${key}"`;
   }, [rawKey]);
 
   async function createKey(e: FormEvent) {
@@ -213,7 +214,7 @@ export default function SettingsPage() {
       setMsg(`API key “${res.name}” created — copy it now.`);
       // Live probe
       try {
-        const invoices = await fetch("http://localhost:3001/api/v1/invoices", {
+        const invoices = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1"}/invoices`, {
           headers: { Authorization: `Bearer ${res.rawKey}` },
         });
         if (!invoices.ok) throw new Error(`Probe HTTP ${invoices.status}`);
@@ -550,7 +551,7 @@ export default function SettingsPage() {
                 </div>
               ) : (
                 <p className="text-xs text-mute">
-                  Base <code className="font-mono">http://localhost:3001/api/v1</code> · Bearer{" "}
+                  Base <code className="font-mono">{process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1"}</code> · Bearer{" "}
                   <code className="font-mono">avz_live_…</code>
                 </p>
               )}

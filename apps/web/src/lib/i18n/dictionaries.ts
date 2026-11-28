@@ -477,6 +477,14 @@ const en = {
     settled: "Settled",
     declined: "Declined",
   },
+
+  docsUi: {
+    topics: "Topics",
+    previous: "Previous",
+    next: "Next",
+    documentation: "Documentation",
+    docs: "Docs",
+  },
 };
 
 const zh: typeof en = {
@@ -948,6 +956,14 @@ const zh: typeof en = {
     pay: "付款",
     settled: "已结算",
     declined: "已拒绝",
+  },
+
+  docsUi: {
+    topics: "主题",
+    previous: "上一篇",
+    next: "下一篇",
+    documentation: "文档",
+    docs: "文档",
   },
 };
 
