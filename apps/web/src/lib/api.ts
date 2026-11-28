@@ -41,8 +41,17 @@ export async function api<T>(
   const orgId = orgOption || getOrgId();
   if (orgId) headers.set("x-organization-id", orgId);
 
-  const res = await fetch(`${API_URL}${path}`, { ...rest, body, headers });
-  const data = await res.json().catch(() => ({} as Record<string, unknown>));
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, { ...rest, body, headers });
+  } catch (err) {
+    const hint =
+      API_URL.includes("localhost")
+        ? "API URL points at localhost — set NEXT_PUBLIC_API_URL on Vercel to your Render API."
+        : "Network/CORS error — on Render set APP_URL and CORS_ORIGINS to your Vercel domain, then redeploy the API.";
+    throw new Error(`${(err as Error).message || "Failed to fetch"}. ${hint}`);
+  }
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
     const msg = data.message ?? data.error ?? res.statusText ?? "Request failed";
     let text: string;

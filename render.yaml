@@ -119,8 +119,8 @@ services:
       - key: PLATFORM_FEE_RECIPIENT
         sync: false
       - key: APP_URL
-        sync: false
+        value: https://avenzafinance.site
       - key: CORS_ORIGINS
-        sync: false
+        value: https://avenzafinance.site,https://www.avenzafinance.site
       - key: API_URL
-        sync: false
+        value: https://avenza-api-7p71.onrender.com

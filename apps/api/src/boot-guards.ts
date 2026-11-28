@@ -117,5 +117,11 @@ export function corsOrigins(): boolean | string | RegExp | (string | RegExp)[] {
     .map((s) => s.trim())
     .filter(Boolean);
   if (multi?.length) return multi;
-  return process.env.APP_URL || "http://localhost:3000";
+  const app = (process.env.APP_URL || "").trim();
+  if (app) return app;
+  // Safe production defaults for the public console domain
+  if (process.env.NODE_ENV === "production") {
+    return ["https://avenzafinance.site", "https://www.avenzafinance.site"];
+  }
+  return "http://localhost:3000";
 }
