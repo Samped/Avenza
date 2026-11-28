@@ -5,12 +5,16 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-# Load untracked .env if present (does not override vars already in the shell).
+# Load untracked .env for any unset vars only (shell exports / CONFIRM_* win).
 if [[ -f "$ROOT/.env" ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source "$ROOT/.env"
-  set +a
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+    key="${line%%=*}"
+    [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+    if [[ -z "${!key+x}" ]]; then
+      export "$line"
+    fi
+  done < "$ROOT/.env"
 fi
 
 cd "$ROOT/contracts"
@@ -67,8 +71,9 @@ if [[ -n "$LATEST" ]]; then
   echo ""
   echo "Broadcast log: $LATEST"
   mkdir -p "$(dirname "$OUT_JSON")"
-  cp "$LATEST" "$OUT_JSON"
-  echo "Copied broadcast → $OUT_JSON"
+  cp "$LATEST" "${OUT_JSON}.broadcast.json"
+  node "$ROOT/scripts/normalize-deployed-json.mjs" "$LATEST" "$OUT_JSON" "$XLAYER_CHAIN_ID"
+  echo "Structured manifest → $OUT_JSON"
 fi
 
 echo ""
