@@ -9,7 +9,7 @@
 | Replay | `paymentSeen` / executed payment maps on-chain; idempotency keys off-chain |
 | Stale approval | Destination/amount/policy commitment mismatch invalidates approvals |
 | Bridged USDC confusion | `assertNativeUsdc` + router allowlist |
-| Silent “fake success” | Simulated settlement requires explicit `ALLOW_SIMULATED_SETTLEMENT=true` |
+| Silent “fake success” | Simulated settlement removed; settle is on-chain or blocked |
 | Opaque circuit trust | When processor registered, contract calls TapeOut `eval` itself |
 | Pause / incident | `EmergencyControl` gates treasury & auth |
 

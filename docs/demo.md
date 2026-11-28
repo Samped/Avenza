@@ -6,7 +6,7 @@ Follow [getting-started.md](./getting-started.md) through seed + API + web.
 
 ```bash
 # Recommended for local-only settlement without deployed contracts
-grep ALLOW_SIMULATED_SETTLEMENT .env || echo 'ALLOW_SIMULATED_SETTLEMENT=true' >> .env
+grep ALLOW_SIMULATED_SETTLEMENT .env || echo 'ALLOW_SIMULATED_SETTLEMENT=false' >> .env
 ```
 
 ## Seed users
@@ -43,14 +43,14 @@ Password = your `DEMO_SEED_PASSWORD` (not stored in git).
 6. Payments: authorize & execute.  
 7. Treasury / audit: inspect mode and events.  
 
-## On-chain testnet
+## On-chain mainnet
 
-Contracts are deployed on X Layer testnet. Addresses: [deployments.md](./deployments.md).
+Contracts are deployed on X Layer mainnet (`196`). Addresses: [deployments.md](./deployments.md).
 
 1. Confirm `.env` contract addresses + `RELAYER_PRIVATE_KEY`  
-2. Obtain testnet native USDC (`0xDec90b…`)  
+2. Obtain mainnet native USDC (`0xB6CEce…`)  
 3. Deposit into `BusinessTreasury` (`0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA`)  
-4. Set `ALLOW_SIMULATED_SETTLEMENT=false`  
+4. Confirm `ALLOW_SIMULATED_SETTLEMENT=false` (simulated settle removed)  
 5. Re-run smoke / console payment against live authorization  
 
 Redeploy only if needed: `./scripts/deploy-xlayer.sh` 

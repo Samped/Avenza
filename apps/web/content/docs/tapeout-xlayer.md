@@ -87,7 +87,7 @@ TAPEOUT_RPC_URL=https://rpc.xlayer.tech
 ALLOW_TAPEOUT_LOCAL_FALLBACK=true   # set false in strict mode
 ```
 
-Settlement may use testnet (`XLAYER_CHAIN_ID=1952`) while TapeOut eval stays on mainnet — supported and intentional for hackathon / staged rollouts.
+Production settlement uses mainnet (`XLAYER_CHAIN_ID=196`) with the same Cerebr processor as TapeOut eval. Testnet settlement (`1952`) remains optional for isolated experiments and uses a local MockTapeOutProcessor.
 
 **Live settlement addresses:** [deployments.md](./deployments.md).
 

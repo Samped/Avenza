@@ -11,7 +11,9 @@
 | Explorer | https://www.oklink.com/xlayer |
 
 Template env: [`apps/api/.env.mainnet.example`](../apps/api/.env.mainnet.example)  
-Preflight: `./scripts/mainnet-preflight.sh`
+Ops checklist: [`docs/ops/mainnet-go-live-checklist.md`](./ops/mainnet-go-live-checklist.md)  
+Build X pack: [`docs/hackathon/BUILD_X_SUBMISSION.md`](./hackathon/BUILD_X_SUBMISSION.md)  
+Preflight: `./scripts/mainnet-preflight.sh` · Fly secrets: `./scripts/fly-set-secrets.sh .env.mainnet`
 
 ---
 

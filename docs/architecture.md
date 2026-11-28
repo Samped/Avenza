@@ -77,7 +77,7 @@ Payment creation requires an `idempotencyKey` scoped per organization to prevent
 | Mode | When |
 |------|------|
 | `onchain` | `PAYMENT_AUTHORIZATION_ADDRESS`, `TREASURY_ADDRESS`, and `RELAYER_PRIVATE_KEY` set |
-| `simulated` | `ALLOW_SIMULATED_SETTLEMENT=true` and contracts not fully configured |
+| `blocked` | Contracts or relayer missing — payments cannot settle |
 | `blocked` | Neither path available — execute fails closed |
 
 Simulation never silently pretends to be a mainnet success without the explicit flag.

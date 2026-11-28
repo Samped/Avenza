@@ -27,9 +27,9 @@ For local development, set at least:
 - `ENCRYPTION_KEY` (64 hex chars) — custody (funding wallet keys, ERP)
 - `AVENZA_FIELD_ENCRYPTION_KEY` — business fields at rest (memos, extraction, contacts)
 
-`.env.example` already points embedded Postgres at `127.0.0.1:54329` and X Layer **testnet** `1952`.
+`.env.example` already points embedded Postgres at `127.0.0.1:54329` and X Layer **mainnet** `196`.
 
-> Settlement is **on-chain only** when contracts + `RELAYER_PRIVATE_KEY` are set. The simulated settlement path has been removed. Without contracts, payments stay blocked (`settlementMode: blocked`) until you deploy or point at the testnet addresses in [deployments.md](./deployments.md).
+> Settlement is **on-chain only** when contracts + `RELAYER_PRIVATE_KEY` are set. The simulated settlement path has been removed. Without contracts, payments stay blocked (`settlementMode: blocked`) until you deploy or point at the mainnet addresses in [deployments.md](./deployments.md).
 
 ## 2. Database and Redis
 
@@ -126,7 +126,7 @@ Set `DEMO_SEED_PASSWORD` in `.env` before `npm run db:seed`. Accounts:
 
 | Variable | Purpose |
 |----------|---------|
-| `XLAYER_CHAIN_ID` | `1952` testnet or `196` mainnet |
+| `XLAYER_CHAIN_ID` | `196` mainnet (default) or `1952` testnet |
 | `XLAYER_RPC_URL` | JSON-RPC |
 | `USDC_TOKEN_ADDRESS` | **Native** USDC only |
 | `RELAYER_PRIVATE_KEY` | Authorize + execute |
@@ -135,6 +135,7 @@ Set `DEMO_SEED_PASSWORD` in `.env` before `npm run db:seed`. Accounts:
 
 Native USDC:
 
+- Mainnet `196`: `0xB6CEceAB302E2E4948951eE7843FC24E92933061`
 - Testnet `1952`: `0xDec90b78111Ba2fc6FC6d84d8B9ec159A2d4b9B3`
 - Mainnet `196`: `0xB6CEceAB302E2E4948951eE7843FC24E92933061`
 
@@ -147,7 +148,7 @@ Native USDC:
 | `TAPEOUT_EVAL_CHAIN_ID` | Usually `196` |
 | `TAPEOUT_RPC_URL` | Eval RPC |
 
-## 5. Optional: live testnet settlement
+## 5. Live mainnet settlement
 
 1. Copy contract addresses from [deployments.md](./deployments.md) into `.env`.
 2. Set a funded `RELAYER_PRIVATE_KEY` (OKB for gas).

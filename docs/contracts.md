@@ -4,7 +4,7 @@ Foundry project: [`contracts/`](../contracts)
 
 Solidity **0.8.24**, optimizer **200** runs, **`via_ir`** enabled.
 
-**Live addresses:** [Deployments](./deployments.md) (X Layer testnet `1952`).
+**Live addresses:** [Deployments](./deployments.md) (X Layer mainnet `196`).
 
 ## Contract catalog
 
@@ -34,10 +34,10 @@ Solidity **0.8.24**, optimizer **200** runs, **`via_ir`** enabled.
 | BusinessTreasury | `0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA` |
 | AuditRegistry | `0x79Be215ec0478D616fC2704370c3590f323ef599` |
 
-- **Native USDC:** `0xDec90b78111Ba2fc6FC6d84d8B9ec159A2d4b9B3`  
+- **Native USDC:** `0xB6CEceAB302E2E4948951eE7843FC24E92933061`  
 - **Organization ID:** `0x603fd1000e3f9b350efdfbeaad5864a151b4bdac12228b5056569a9b2478f82a`  
 - **Policy version:** `2` (settlement processor on testnet; see [deployments.md](./deployments.md))  
-- **Verification:** Sourcify `exact_match` — https://repo.sourcify.dev/1952/
+- **Verification:** Sourcify `exact_match` — https://repo.sourcify.dev/196/
 
 ## Authorization flow
 
@@ -79,9 +79,9 @@ Coverage includes authorize + pay, replay, insufficient approvals, pause, double
 
 ```bash
 export DEPLOYER_PRIVATE_KEY=0x...   # funded OKB; never commit
-export XLAYER_CHAIN_ID=1952
+export XLAYER_CHAIN_ID=196
 export XLAYER_RPC_URL=https://testrpc.xlayer.tech/terigon
-export USDC_TOKEN_ADDRESS=0xDec90b78111Ba2fc6FC6d84d8B9ec159A2d4b9B3
+export USDC_TOKEN_ADDRESS=0xB6CEceAB302E2E4948951eE7843FC24E92933061
 ./scripts/deploy-xlayer.sh
 ```
 

@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | Category | FinTech · B2B Payments · Smart Contracts · Stablecoin Settlement |
-| Chain | X Layer (testnet 1952 · mainnet 196) |
+| Chain | X Layer mainnet 196 (testnet 1952 optional) |
 | Asset | Native USDC only (not bridged) |
 | Policy | TapeOut circuits + Solidity enforcement |
 | Status | Blueprint v1.0 — aligned with the running console |
