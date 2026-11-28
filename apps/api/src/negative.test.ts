@@ -17,7 +17,7 @@ describe("negative controls", () => {
       supplierId: "sup",
       destinationAddress: "0x1111111111111111111111111111111111111111",
       tokenAddress: "0xDec90b78111Ba2fc6FC6d84d8B9ec159A2d4b9B3",
-      chainId: 1952,
+      chainId: 196,
       policyVersion: 1,
     };
     const a = paymentCommitment(base);

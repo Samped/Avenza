@@ -26,10 +26,17 @@ function toBytes32(hexOrId: string): `0x${string}` {
 export class OnchainSyncService {
   private readonly log = new Logger(OnchainSyncService.name);
 
+  /**
+   * Registry mutations are Ownable — use REGISTRY_OWNER_PRIVATE_KEY (or deployer).
+   * Settlement still uses RELAYER_PRIVATE_KEY in payments/settlement.ts.
+   */
   private client() {
-    const pk = process.env.RELAYER_PRIVATE_KEY as Hex | undefined;
+    const pk = (process.env.REGISTRY_OWNER_PRIVATE_KEY ||
+      process.env.OWNER_PRIVATE_KEY ||
+      process.env.DEPLOYER_PRIVATE_KEY ||
+      process.env.RELAYER_PRIVATE_KEY) as Hex | undefined;
     if (!pk) return null;
-    const chainId = Number(process.env.XLAYER_CHAIN_ID || 1952);
+    const chainId = Number(process.env.XLAYER_CHAIN_ID || 196);
     const rpc = process.env.XLAYER_RPC_URL;
     const wallet = createXLayerWalletClient(chainId, pk, rpc);
     const publicClient = createXLayerPublicClient(chainId, rpc);

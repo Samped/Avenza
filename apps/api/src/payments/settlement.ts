@@ -79,7 +79,7 @@ function toBytes32(hexOrId: string): `0x${string}` {
 }
 
 function requireRelayerEnv() {
-  const chainId = Number(process.env.XLAYER_CHAIN_ID || 1952);
+  const chainId = Number(process.env.XLAYER_CHAIN_ID || 196);
   const authAddr = process.env.PAYMENT_AUTHORIZATION_ADDRESS as `0x${string}` | undefined;
   const treasuryAddr = process.env.TREASURY_ADDRESS as `0x${string}` | undefined;
   const pk = process.env.RELAYER_PRIVATE_KEY as Hex | undefined;
@@ -119,7 +119,15 @@ export async function executeSettlement(req: SettlementRequest): Promise<Settlem
       args: [orgId32],
     });
     if (!active) {
-      const regHash = await wallet.writeContract({
+      // Ownable registry — must use owner key, not the settle relayer.
+      const ownerPk = (process.env.REGISTRY_OWNER_PRIVATE_KEY ||
+        process.env.OWNER_PRIVATE_KEY ||
+        process.env.DEPLOYER_PRIVATE_KEY ||
+        pk) as Hex;
+      const ownerWallet = createXLayerWalletClient(chainId, ownerPk, rpc);
+      const ownerAccount = ownerWallet.account;
+      if (!ownerAccount) throw new SettlementError("Registry owner wallet missing");
+      const regHash = await ownerWallet.writeContract({
         address: orgRegistry,
         abi: organizationRegistryAbi,
         functionName: "register",
@@ -324,7 +332,7 @@ export async function getConfirmations(txHash: `0x${string}`): Promise<number> {
   if (txHash.toLowerCase().startsWith("0xsim")) {
     throw new Error("Simulated settlement hashes are no longer accepted");
   }
-  const chainId = Number(process.env.XLAYER_CHAIN_ID || 1952);
+  const chainId = Number(process.env.XLAYER_CHAIN_ID || 196);
   const rpc = process.env.XLAYER_RPC_URL;
   const client = createXLayerPublicClient(chainId, rpc);
   const receipt = await client.getTransactionReceipt({ hash: txHash });

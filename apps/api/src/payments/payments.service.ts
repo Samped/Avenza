@@ -513,6 +513,7 @@ export class PaymentsService {
         transactionHash: result.transactionHash,
         controlsVersion: result.controlsVersion,
       });
+      void this.enqueuePaymentMonitor(orgId, paymentId);
 
       return {
         ...updated,
@@ -581,13 +582,38 @@ export class PaymentsService {
     }
   }
 
+  private async enqueuePaymentMonitor(organizationId: string, paymentId: string) {
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) return;
+    try {
+      const { Queue } = await import("bullmq");
+      const IORedis = (await import("ioredis")).default;
+      const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
+      const q = new Queue("payment-monitor", { connection });
+      const required = Number(process.env.REQUIRED_CONFIRMATIONS || 3);
+      await q.add(
+        "confirm",
+        { organizationId, paymentId },
+        {
+          removeOnComplete: 100,
+          attempts: Math.max(5, required + 2),
+          backoff: { type: "fixed", delay: 15_000 },
+        },
+      );
+      await q.close();
+      connection.disconnect();
+    } catch {
+      /* best-effort */
+    }
+  }
+
   async refreshStatus(orgId: string, paymentId: string) {
     const payment = await this.get(orgId, paymentId);
     if (!payment.transactionHash || payment.status !== "PAYMENT_SUBMITTED") {
       return payment;
     }
 
-    const chainIdForConf = Number(process.env.XLAYER_CHAIN_ID || 1952);
+    const chainIdForConf = Number(process.env.XLAYER_CHAIN_ID || 196);
     const required = Number(
       process.env.REQUIRED_CONFIRMATIONS || (chainIdForConf === 196 ? 3 : 1),
     );
@@ -682,7 +708,7 @@ export class PaymentsService {
     const token =
       process.env.XLAYER_USDC_ADDRESS?.toLowerCase() ||
       "0xdec90b78111ba2fc6fc6d84d8b9ec159a2d4b9b3";
-    const chainId = Number(process.env.XLAYER_CHAIN_ID || 1952);
+    const chainId = Number(process.env.XLAYER_CHAIN_ID || 196);
 
     if (wallet) {
       const existingDest = await this.prisma.supplierPaymentDestination.findFirst({
@@ -1306,7 +1332,7 @@ export class PaymentsService {
   }
 
   networkInfo() {
-    const chainId = Number(process.env.XLAYER_CHAIN_ID || XLAYER_TESTNET.chainId);
+    const chainId = Number(process.env.XLAYER_CHAIN_ID || 196);
     const processor =
       process.env.TAPEOUT_PROCESSOR_ADDRESS || AVENZA_TAPEOUT.processor;
     const circuitId =
