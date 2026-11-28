@@ -1,17 +1,19 @@
-# AVENZA on Render — API + worker + Postgres + Redis
-# Blueprint: https://dashboard.render.com/blueprints
+# AVENZA on Render — FREE tier Blueprint
+# Dashboard → New → Blueprint → this repo
 #
-# After create:
-# 1. Set secret env group values (RELAYER_PRIVATE_KEY, JWT_SECRET, ENCRYPTION_KEY, …)
-# 2. Deploy Vercel web with NEXT_PUBLIC_API_URL=https://<avenza-api>.onrender.com/api/v1
-# 3. Set APP_URL + CORS_ORIGINS on API to the Vercel URL
-# 4. Fund RELAYER with OKB; deposit native USDC to BusinessTreasury
+# Free limits (Render Hobby):
+# - Web service spins down after ~15m idle (cold start ~1m)
+# - Free Postgres expires after 30 days (export before then)
+# - Free Key Value is tiny / non-persistent
+# - Background workers are NOT free — omitted here (API still runs; queues optional)
+#
+# After create: fill sync:false secrets, deploy Vercel, set APP_URL/CORS_ORIGINS.
 
 previewsEnabled: false
 
 databases:
   - name: avenza-db
-    plan: basic-256mb
+    plan: free
     databaseName: avenza
     user: avenza
     postgresMajorVersion: "16"
@@ -19,8 +21,8 @@ databases:
 services:
   - type: keyvalue
     name: avenza-redis
-    plan: starter
-    maxmemoryPolicy: noeviction
+    plan: free
+    maxmemoryPolicy: allkeys-lru
     ipAllowList: []
 
   - type: web
@@ -28,7 +30,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile.api
     dockerContext: .
-    plan: starter
+    plan: free
     region: oregon
     healthCheckPath: /api/v1/health
     autoDeploy: true
@@ -100,7 +102,6 @@ services:
           name: avenza-redis
           type: keyvalue
           property: connectionString
-      # Secrets — set in Render dashboard / env group (do not commit values)
       - key: JWT_SECRET
         sync: false
       - key: SESSION_SECRET
@@ -120,31 +121,6 @@ services:
       - key: APP_URL
         sync: false
       - key: CORS_ORIGINS
-        sync: false
-      - key: API_URL
-        sync: false
-
-  - type: worker
-    name: avenza-worker
-    runtime: docker
-    dockerfilePath: ./Dockerfile.worker
-    dockerContext: .
-    plan: starter
-    region: oregon
-    autoDeploy: true
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: REDIS_URL
-        fromService:
-          name: avenza-redis
-          type: keyvalue
-          property: connectionString
-      - key: DATABASE_URL
-        fromDatabase:
-          name: avenza-db
-          property: connectionString
-      - key: INTERNAL_WEBHOOK_TOKEN
         sync: false
       - key: API_URL
         sync: false
