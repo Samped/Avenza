@@ -54,8 +54,16 @@ export const DOC_CATALOG: DocMeta[] = [
     title: "Deployments",
     titleZh: "部署",
     description: "Live X Layer mainnet addresses, policy IDs, and verification.",
-    descriptionZh: "X Layer 测试网地址、策略 ID 与核验。",
+    descriptionZh: "X Layer 主网地址、策略 ID 与核验。",
     file: "deployments.md",
+  },
+  {
+    slug: "hosting-render-vercel",
+    title: "Host on Render + Vercel",
+    titleZh: "Render + Vercel 托管",
+    description: "Deploy API/worker on Render and the console on Vercel.",
+    descriptionZh: "在 Render 部署 API/worker，在 Vercel 部署控制台。",
+    file: "hosting-render-vercel.md",
   },
   {
     slug: "tapeout-xlayer",

@@ -11,7 +11,9 @@
 | Explorer | https://www.oklink.com/xlayer |
 
 Template env: [`apps/api/.env.mainnet.example`](../apps/api/.env.mainnet.example)  
-Preflight: `./scripts/mainnet-preflight.sh`
+Ops checklist: [`docs/ops/mainnet-go-live-checklist.md`](./ops/mainnet-go-live-checklist.md)  
+Build X pack: [`docs/hackathon/BUILD_X_SUBMISSION.md`](./hackathon/BUILD_X_SUBMISSION.md)  
+Preflight: `./scripts/mainnet-preflight.sh` · Fly secrets: `./scripts/fly-set-secrets.sh .env.mainnet`
 
 ---
 
@@ -70,10 +72,10 @@ Copy addresses into Fly secrets / production env. Transfer Ownable → multisig.
 
 | Piece | Recommendation |
 |-------|----------------|
-| Postgres | Neon (prod project) — **no** `db:seed` |
-| Redis | Upstash |
-| API | Fly `avenza-api` (`fly.toml` mainnet defaults) |
-| Web | Vercel — `NEXT_PUBLIC_API_URL`, mainnet explorer base |
+| Postgres | Render Postgres (or Neon) — **no** `db:seed` |
+| Redis | Render Key Value (or Upstash) |
+| API + worker | **Render** Blueprint `render.yaml` (repo root) |
+| Web | **Vercel** (`apps/web`) — see [hosting-render-vercel.md](./hosting-render-vercel.md) |
 
 ```bash
 # Against production DATABASE_URL only

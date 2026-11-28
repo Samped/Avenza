@@ -29,6 +29,8 @@ gas-report.txt
 .env.*
 !.env.example
 !.env.*.example
+!.env.vercel.example
+!apps/web/.env.vercel.example
 *.pem
 *.key
 *.p12

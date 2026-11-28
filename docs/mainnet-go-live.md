@@ -72,10 +72,10 @@ Copy addresses into Fly secrets / production env. Transfer Ownable → multisig.
 
 | Piece | Recommendation |
 |-------|----------------|
-| Postgres | Neon (prod project) — **no** `db:seed` |
-| Redis | Upstash |
-| API | Fly `avenza-api` (`fly.toml` mainnet defaults) |
-| Web | Vercel — `NEXT_PUBLIC_API_URL`, mainnet explorer base |
+| Postgres | Render Postgres (or Neon) — **no** `db:seed` |
+| Redis | Render Key Value (or Upstash) |
+| API + worker | **Render** Blueprint [`render.yaml`](../render.yaml) |
+| Web | **Vercel** (`apps/web`) — see [hosting-render-vercel.md](./hosting-render-vercel.md) |
 
 ```bash
 # Against production DATABASE_URL only

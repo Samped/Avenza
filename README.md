@@ -256,6 +256,7 @@ Browse in the console at **`/app/docs`**, publicly at **`/docs`**, or in the rep
 | [docs/tapeout-xlayer.md](docs/tapeout-xlayer.md) | TapeOut + X Layer integration |
 | [docs/security.md](docs/security.md) | Security controls and pre-mainnet checklist |
 | [docs/mainnet-go-live.md](docs/mainnet-go-live.md) | Production cutover for chain 196 |
+| [docs/hosting-render-vercel.md](docs/hosting-render-vercel.md) | Host API on Render + web on Vercel |
 | [docs/mvp-acceptance.md](docs/mvp-acceptance.md) | Acceptance criteria |
 | [docs/demo.md](docs/demo.md) | Local demo runbook |
 

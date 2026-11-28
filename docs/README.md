@@ -23,6 +23,7 @@ Professional reference for operators, integrators, and contributors.
 | [TapeOut & X Layer](./tapeout-xlayer.md) | On-chain policy & settlement |
 | [Security](./security.md) | Security & compliance review |
 | [Mainnet go-live](./mainnet-go-live.md) | Production cutover (chain 196) |
+| [hosting-render-vercel.md](./hosting-render-vercel.md) | Render API/worker + Vercel console |
 | [MVP acceptance](./mvp-acceptance.md) | QA / release gate |
 | [Demo runbook](./demo.md) | Local end-to-end demo |
 | [Development](./development.md) | Contributors: workspaces, tests, code map |
