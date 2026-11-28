@@ -10,7 +10,7 @@ AVENZA helps organizations verify invoices, enforce approval and spend policy, a
 | **API** | NestJS orchestration, RBAC, idempotency |
 | **TapeOut** | On-chain deterministic policy evaluation (`eval`) |
 | **Contracts** | Independent Solidity authorization + `BusinessTreasury` |
-| **Settlement** | Native USDC on X Layer (testnet `1952` / mainnet `196`) |
+| **Settlement** | Native USDC on **X Layer mainnet `196`** (testnet `1952` optional) |
 
 ---
 
@@ -175,7 +175,7 @@ Verify TapeOut on X Layer (free view call):
 | Processor (Cerebr) | `0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF` |
 | PaymentLimit circuit | `#1` — AND(`amountOk`, `budgetOk`) |
 | Eval chain | Mainnet `196` (`TAPEOUT_EVAL_CHAIN_ID`) |
-| Settlement chain | Often testnet `1952` during development |
+| Settlement chain | **Mainnet `196`** (same Cerebr processor as eval) |
 
 - API: `packages/chain` → `evalPaymentLimitOnTapeOut`
 - Contract: `PaymentAuthorization` calls `ITapeOutProcessor.eval` when `policy.processor != address(0)`
@@ -198,31 +198,33 @@ Details: [docs/tapeout-xlayer.md](docs/tapeout-xlayer.md)
 | `EmergencyControl` | Pause |
 | `AuditRegistry` | On-chain audit commitments |
 
-### X Layer testnet deployment (`1952`)
+### X Layer mainnet deployment (`196`)
 
 | Contract | Address |
 |----------|---------|
-| PaymentAuthorization | [`0xE3F25b5e9Da3dFA72C0a12f05fd45cc0dD4243dD`](https://www.oklink.com/x-layer-testnet/address/0xE3F25b5e9Da3dFA72C0a12f05fd45cc0dD4243dD) |
-| BusinessTreasury | [`0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA`](https://www.oklink.com/x-layer-testnet/address/0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA) |
-| PaymentPolicyRegistry | [`0x0Af7a5DDE4f2B30772eE60F80EfD516A94C56A52`](https://www.oklink.com/x-layer-testnet/address/0x0Af7a5DDE4f2B30772eE60F80EfD516A94C56A52) |
-| PaymentRouter | [`0xF10cDEB14604F6311195dA90B6076713f7f42f14`](https://www.oklink.com/x-layer-testnet/address/0xF10cDEB14604F6311195dA90B6076713f7f42f14) |
-| OrganizationRegistry | [`0xD2445389196f2c502AB5ec6f49a90cc04BB71ff5`](https://www.oklink.com/x-layer-testnet/address/0xD2445389196f2c502AB5ec6f49a90cc04BB71ff5) |
-| VendorRegistry | [`0x3dE7a4C348F7415087a9Cf58FBC57256bAF1eb4b`](https://www.oklink.com/x-layer-testnet/address/0x3dE7a4C348F7415087a9Cf58FBC57256bAF1eb4b) |
-| EmergencyControl | [`0xcc5661D1471e9e61B37Df5Ad5D2E1B2C5578c884`](https://www.oklink.com/x-layer-testnet/address/0xcc5661D1471e9e61B37Df5Ad5D2E1B2C5578c884) |
-| AuditRegistry | [`0x79Be215ec0478D616fC2704370c3590f323ef599`](https://www.oklink.com/x-layer-testnet/address/0x79Be215ec0478D616fC2704370c3590f323ef599) |
+| PaymentAuthorization | [`0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA`](https://www.oklink.com/xlayer/address/0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA) |
+| BusinessTreasury | [`0x951adC47425FB4441A3D057d3e10Fa5D4eC27Ed1`](https://www.oklink.com/xlayer/address/0x951adC47425FB4441A3D057d3e10Fa5D4eC27Ed1) |
+| PaymentPolicyRegistry | [`0x0Af7a5DDE4f2B30772eE60F80EfD516A94C56A52`](https://www.oklink.com/xlayer/address/0x0Af7a5DDE4f2B30772eE60F80EfD516A94C56A52) |
+| ControlsRegistry | [`0xF10cDEB14604F6311195dA90B6076713f7f42f14`](https://www.oklink.com/xlayer/address/0xF10cDEB14604F6311195dA90B6076713f7f42f14) |
+| PaymentRouter | [`0xE3F25b5e9Da3dFA72C0a12f05fd45cc0dD4243dD`](https://www.oklink.com/xlayer/address/0xE3F25b5e9Da3dFA72C0a12f05fd45cc0dD4243dD) |
+| OrganizationRegistry | [`0xD2445389196f2c502AB5ec6f49a90cc04BB71ff5`](https://www.oklink.com/xlayer/address/0xD2445389196f2c502AB5ec6f49a90cc04BB71ff5) |
+| VendorRegistry | [`0x3dE7a4C348F7415087a9Cf58FBC57256bAF1eb4b`](https://www.oklink.com/xlayer/address/0x3dE7a4C348F7415087a9Cf58FBC57256bAF1eb4b) |
+| EmergencyControl | [`0xcc5661D1471e9e61B37Df5Ad5D2E1B2C5578c884`](https://www.oklink.com/xlayer/address/0xcc5661D1471e9e61B37Df5Ad5D2E1B2C5578c884) |
+| AuditRegistry | [`0xEc114e0B3d39CaFEBE9d9aC25932A75958A7fbDC`](https://www.oklink.com/xlayer/address/0xEc114e0B3d39CaFEBE9d9aC25932A75958A7fbDC) |
 
-Native USDC (testnet): `0xDec90b78111Ba2fc6FC6d84d8B9ec159A2d4b9B3`  
-Full registry, policy IDs, env mapping, and Sourcify links: **[docs/deployments.md](docs/deployments.md)**
+Native USDC (mainnet): `0xB6CEceAB302E2E4948951eE7843FC24E92933061`  
+TapeOut: Cerebr `0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF` circuit `#1`  
+Full registry and env mapping: **[docs/deployments.md](docs/deployments.md)** · manifest: [`docs/hackathon/deployed-mainnet.json`](docs/hackathon/deployed-mainnet.json)
 
 ```bash
 cd contracts && forge test
-./scripts/deploy-xlayer.sh          # funded key in .env
-./scripts/verify-xlayer.sh          # Sourcify exact_match
+CONFIRM_MAINNET_DEPLOY=yes ./scripts/deploy-xlayer.sh
+./scripts/verify-xlayer.sh
+./scripts/mainnet-preflight.sh
 ```
 
 Local Anvil full stack: `contracts/script/DeployLocal.s.sol`
 
----
 
 ## Roles & permissions
 
