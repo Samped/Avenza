@@ -2,10 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { createHash } from "node:crypto";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
+import { decryptBytes, encryptBytes } from "../crypto/secrets";
 
 /**
- * Local filesystem document store for MVP.
- * S3/MinIO can replace this behind the same interface.
+ * Document store with AES-256-GCM at rest (ENCRYPTION_KEY).
+ * Set DOCUMENT_ROOT or swap for S3 SSE-KMS behind the same interface.
  */
 @Injectable()
 export class StorageService {
@@ -17,12 +18,14 @@ export class StorageService {
     const key = `${organizationId}/${Date.now()}-${filename}`;
     const full = path.join(this.root, key);
     await mkdir(path.dirname(full), { recursive: true });
-    await writeFile(full, data);
+    const sealed = encryptBytes(data);
+    await writeFile(full, sealed);
     const hash = createHash("sha256").update(data).digest("hex");
     return { key, hash };
   }
 
   async get(key: string): Promise<Buffer> {
-    return readFile(path.join(this.root, key));
+    const packed = await readFile(path.join(this.root, key));
+    return decryptBytes(packed);
   }
 }

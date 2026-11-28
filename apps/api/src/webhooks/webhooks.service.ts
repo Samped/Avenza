@@ -3,6 +3,7 @@ import { createHmac, randomBytes } from "node:crypto";
 import { CreateWebhookEndpointSchema } from "@avenza/shared";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { encryptSecret, revealMaybeEncryptedSecret } from "../crypto/secrets";
 
 @Injectable()
 export class WebhooksService {
@@ -22,7 +23,7 @@ export class WebhooksService {
         organizationId: orgId,
         url: parsed.data.url,
         description: parsed.data.description,
-        secret,
+        secret: encryptSecret(secret),
         eventsJson: JSON.stringify(parsed.data.events),
       },
     });
@@ -34,6 +35,7 @@ export class WebhooksService {
       entityId: row.id,
       eventPayload: { url: row.url, events: parsed.data.events },
     });
+    // Return plaintext secret once; DB stores AES-GCM ciphertext.
     return { ...row, secret };
   }
 
@@ -99,7 +101,8 @@ export class WebhooksService {
         },
       });
       created.push(delivery);
-      void this.enqueueBull(delivery.id, ep.url, ep.secret, eventType, payloadJson);
+      const plainSecret = revealMaybeEncryptedSecret(ep.secret);
+      void this.enqueueBull(delivery.id, ep.url, plainSecret, eventType, payloadJson);
       // Best-effort immediate delivery (worker retries via queue).
       void this.attemptDelivery(delivery.id);
     }
@@ -146,7 +149,8 @@ export class WebhooksService {
     if (!delivery || !delivery.endpoint.active) return { ok: false, reason: "missing" };
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const signature = this.sign(delivery.endpoint.secret, delivery.payloadJson, timestamp);
+    const plainSecret = revealMaybeEncryptedSecret(delivery.endpoint.secret);
+    const signature = this.sign(plainSecret, delivery.payloadJson, timestamp);
     try {
       const res = await fetch(delivery.endpoint.url, {
         method: "POST",
