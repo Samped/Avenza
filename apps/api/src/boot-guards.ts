@@ -107,7 +107,7 @@ export function assertProductionAndMainnetGates(): void {
 }
 
 export function requiredConfirmations(): number {
-  const chainId = Number(process.env.XLAYER_CHAIN_ID || 1952);
+  const chainId = Number(process.env.XLAYER_CHAIN_ID || 196);
   const fallback = chainId === 196 ? 3 : 1;
   return Number(process.env.REQUIRED_CONFIRMATIONS || fallback);
 }
