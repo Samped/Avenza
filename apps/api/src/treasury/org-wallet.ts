@@ -11,7 +11,7 @@ export type ProvisionedOrgWallet = {
 /** Create a dedicated funding EOA for a workspace (agentic ops / vault deposits). */
 export function provisionOrgWallet(): ProvisionedOrgWallet {
   const { address, privateKey } = generateFundingWallet();
-  const chainId = Number(process.env.XLAYER_CHAIN_ID || 1952);
+  const chainId = Number(process.env.XLAYER_CHAIN_ID || 196);
   const vaultAddress = process.env.TREASURY_ADDRESS || null;
   return {
     fundingWalletAddress: address,

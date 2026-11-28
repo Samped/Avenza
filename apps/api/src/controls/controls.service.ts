@@ -183,7 +183,7 @@ export class ControlsService {
     }
 
     try {
-      const chainId = Number(process.env.XLAYER_CHAIN_ID || 1952);
+      const chainId = Number(process.env.XLAYER_CHAIN_ID || 196);
       const client = createXLayerPublicClient(chainId, process.env.XLAYER_RPC_URL);
       const onChainOrgId = org.onChainOrgId || org.id;
       const latest = await client.readContract({

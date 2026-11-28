@@ -65,7 +65,7 @@ export class TreasuryService {
 
   async getSummary(orgId: string) {
     const cfg = await this.ensureWallet(orgId);
-    const chainId = cfg.chainId || Number(process.env.XLAYER_CHAIN_ID || 1952);
+    const chainId = cfg.chainId || Number(process.env.XLAYER_CHAIN_ID || 196);
     const rpc = process.env.XLAYER_RPC_URL;
     const usdc = (process.env.USDC_TOKEN_ADDRESS || "") as `0x${string}`;
     const vault = (cfg.vaultAddress || process.env.TREASURY_ADDRESS || null) as `0x${string}` | null;
@@ -146,7 +146,7 @@ export class TreasuryService {
     }
 
     const pk = decryptSecret(cfg.fundingWalletKeyEnc) as Hex;
-    const chainId = cfg.chainId || Number(process.env.XLAYER_CHAIN_ID || 1952);
+    const chainId = cfg.chainId || Number(process.env.XLAYER_CHAIN_ID || 196);
     const rpc = process.env.XLAYER_RPC_URL;
     const publicClient = createXLayerPublicClient(chainId, rpc);
     const wallet = createXLayerWalletClient(chainId, pk, rpc);

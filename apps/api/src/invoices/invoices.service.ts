@@ -186,7 +186,7 @@ export class InvoicesService {
       const token =
         process.env.XLAYER_USDC_ADDRESS?.toLowerCase() ||
         "0xdec90b78111ba2fc6fc6d84d8b9ec159a2d4b9b3";
-      const chainId = Number(process.env.XLAYER_CHAIN_ID || 1952);
+      const chainId = Number(process.env.XLAYER_CHAIN_ID || 196);
       await this.prisma.supplierPaymentDestination.updateMany({
         where: { supplierId: supplier.id, active: true },
         data: { active: false },

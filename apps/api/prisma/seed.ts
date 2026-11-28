@@ -118,8 +118,8 @@ async function main() {
       riskStatus: "clear",
       paymentDestinations: {
         create: {
-          chainId: 1952,
-          tokenAddress: "0xdec90b78111ba2fc6fc6d84d8b9ec159a2d4b9b3",
+          chainId: 196,
+          tokenAddress: "0xb6ceceab302e2e4948951ee7843fc24e92933061",
           walletAddress: "0x1111111111111111111111111111111111111111",
           verificationStatus: "verified",
           approvedAt: new Date(),

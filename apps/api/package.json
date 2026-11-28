@@ -9,6 +9,7 @@
     "watch": "tsc -p tsconfig.json --watch",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:push": "prisma db push",
     "prisma:seed": "tsx prisma/seed.ts",
     "encrypt:fields": "tsx scripts/encrypt-sensitive-fields.ts",
