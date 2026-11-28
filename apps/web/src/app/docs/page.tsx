@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { DocsShell } from "@/components/DocsShell";
-import { DOC_CATALOG } from "@/lib/docs";
+import { DocsIndexList } from "@/components/DocViewer";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
 export default function DocsIndexPage() {
@@ -17,16 +16,7 @@ export default function DocsIndexPage() {
           <p className="docs-home-lead">{t("pages.docsLead")}</p>
         </header>
 
-        <ul className="docs-home-list">
-          {DOC_CATALOG.map((doc) => (
-            <li key={doc.slug}>
-              <Link href={`/docs/${doc.slug}`} className="docs-home-row">
-                <span className="docs-home-row-title">{doc.title}</span>
-                <span className="docs-home-row-desc">{doc.description}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <DocsIndexList basePath="/docs" variant="public" />
       </div>
     </DocsShell>
   );
