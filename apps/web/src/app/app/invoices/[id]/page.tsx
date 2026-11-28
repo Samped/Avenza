@@ -701,7 +701,7 @@ export default function InvoiceDetailPage() {
                   <a
                     href={
                       payResult.explorerAuthorize ||
-                      `https://www.oklink.com/xlayer-test/tx/${payResult.authorizeTx}`
+                      `https://www.oklink.com/xlayer/tx/${payResult.authorizeTx}`
                     }
                     target="_blank"
                     rel="noreferrer"
@@ -713,7 +713,7 @@ export default function InvoiceDetailPage() {
                   <a
                     href={
                       payResult.explorerSettle ||
-                      `https://www.oklink.com/xlayer-test/tx/${payResult.settleTx}`
+                      `https://www.oklink.com/xlayer/tx/${payResult.settleTx}`
                     }
                     target="_blank"
                     rel="noreferrer"

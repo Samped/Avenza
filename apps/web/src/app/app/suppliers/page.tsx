@@ -5,8 +5,12 @@ import { api, getOrgId } from "@/lib/api";
 import { DashEmpty, DashHeader, DashPage, DashPanel, DashStatus } from "@/components/dash";
 import { useI18n } from "@/lib/i18n/LocaleProvider";
 
-const DEFAULT_CHAIN = 1952;
-const DEFAULT_USDC = "0xDec90b78111Ba2fc6FC6d84d8B9ec159A2d4b9B3";
+const DEFAULT_CHAIN = Number(process.env.NEXT_PUBLIC_XLAYER_CHAIN_ID || 196);
+const DEFAULT_USDC =
+  process.env.NEXT_PUBLIC_USDC_TOKEN_ADDRESS ||
+  (DEFAULT_CHAIN === 196
+    ? "0xB6CEceAB302E2E4948951eE7843FC24E92933061"
+    : "0xDec90b78111Ba2fc6FC6d84d8B9ec159A2d4b9B3");
 
 type Supplier = {
   id: string;

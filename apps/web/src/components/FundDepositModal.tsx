@@ -20,7 +20,9 @@ type TreasurySummary = {
 
 const EXPLORER =
   process.env.NEXT_PUBLIC_EXPLORER_ADDRESS_BASE ||
-  "https://www.oklink.com/x-layer-testnet/address/";
+  (Number(process.env.NEXT_PUBLIC_XLAYER_CHAIN_ID || 196) === 196
+    ? "https://www.oklink.com/xlayer/address/"
+    : "https://www.oklink.com/xlayer-test/address/");
 
 function formatUsdc(minor: string) {
   const n = Number(minor) / 1e6;
@@ -73,7 +75,7 @@ export function FundDepositModal({
     if (initial?.fundingWalletAddress) {
       setSummary((prev) => ({
         onChainOrgId: initial.onChainOrgId ?? prev?.onChainOrgId ?? null,
-        chainId: initial.chainId ?? prev?.chainId ?? 1952,
+        chainId: initial.chainId ?? prev?.chainId ?? Number(process.env.NEXT_PUBLIC_XLAYER_CHAIN_ID || 196),
         vaultAddress: initial.vaultAddress ?? prev?.vaultAddress ?? null,
         fundingWalletAddress: initial.fundingWalletAddress ?? null,
         balances: initial.balances ??

@@ -66,7 +66,9 @@ type ErpConn = { id: string; provider: string; status: string; baseUrl: string }
 
 const EXPLORER =
   process.env.NEXT_PUBLIC_EXPLORER_ADDRESS_BASE ||
-  "https://www.oklink.com/x-layer-testnet/address/";
+  (Number(process.env.NEXT_PUBLIC_XLAYER_CHAIN_ID || 196) === 196
+    ? "https://www.oklink.com/xlayer/address/"
+    : "https://www.oklink.com/xlayer-test/address/");
 
 function shortAddr(addr: string) {
   if (addr.length < 12) return addr;

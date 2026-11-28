@@ -134,7 +134,7 @@ function shortHash(hash: string | null | undefined, size = 6) {
 
 function txHref(base: string | undefined, hash: string | null | undefined) {
   if (!hash || hash.startsWith("0xsim")) return undefined;
-  const root = (base || "https://www.oklink.com/xlayer-test/tx").replace(/\/$/, "");
+  const root = (base || "https://www.oklink.com/xlayer/tx").replace(/\/$/, "");
   return `${root}/${hash}`;
 }
 
