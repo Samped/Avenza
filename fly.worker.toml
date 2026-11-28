@@ -1,0 +1,13 @@
+# AVENZA worker — fly deploy -c fly.worker.toml --dockerfile Dockerfile.worker
+app = "avenza-worker"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile.worker"
+
+[env]
+  NODE_ENV = "production"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

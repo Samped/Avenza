@@ -55,7 +55,30 @@ async function deliverWebhook(job: {
   }
 }
 
+async function monitorPayment(job: { organizationId: string; paymentId: string }) {
+  if (!job.organizationId || !job.paymentId) {
+    throw new Error("payment-monitor requires organizationId + paymentId");
+  }
+  const res = await fetch(
+    `${apiBase}/api/v1/internal/payments/${job.organizationId}/${job.paymentId}/refresh-status`,
+    {
+      method: "POST",
+      headers: { "x-avenza-internal": internalToken },
+      signal: AbortSignal.timeout(30_000),
+    },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`payment refresh ${res.status}: ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
 async function main() {
+  if (process.env.NODE_ENV === "production" && internalToken === "dev") {
+    throw new Error("INTERNAL_WEBHOOK_TOKEN must be set in production (not 'dev')");
+  }
+
   const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
 
   const invoiceQueue = new Queue("invoice-pipeline", { connection });
@@ -66,7 +89,7 @@ async function main() {
     "invoice-pipeline",
     async (job) => {
       console.log(`[invoice-pipeline] job=${job.id} name=${job.name}`, job.data);
-      return { ok: true };
+      return { ok: true, deferred: true };
     },
     { connection },
   );
@@ -75,7 +98,7 @@ async function main() {
     "payment-monitor",
     async (job) => {
       console.log(`[payment-monitor] paymentId=${job.data.paymentId}`);
-      return { ok: true };
+      return monitorPayment(job.data);
     },
     { connection },
   );
@@ -98,7 +121,6 @@ async function main() {
         if (!res.ok) throw new Error(`API delivery attempt ${res.status}`);
         return res.json();
       }
-      console.log(`[webhooks] queued delivery=${job.data.deliveryId}`);
       return { ok: true, deferred: true };
     },
     { connection },
