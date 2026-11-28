@@ -2,6 +2,15 @@
 
 Canonical on-chain addresses for AVENZA. **Production settlement is X Layer mainnet (`196`).** Prefer this document over scattered notes when integrating wallets, explorers, or the API.
 
+## Production application hosts
+
+| Surface | URL |
+|---------|-----|
+| Console | https://avenzafinance.site |
+| API | https://avenza-api-7p71.onrender.com |
+| API health | https://avenza-api-7p71.onrender.com/api/v1/health |
+| Hosting runbook | [hosting-render-vercel.md](./hosting-render-vercel.md) |
+
 ## X Layer mainnet (chain ID `196`) — production
 
 | Network | Value |

@@ -1,67 +1,78 @@
-# Host AVENZA on Render + Vercel
+# Production hosting — Render + Vercel
 
-**Default Blueprint uses Render Free / Hobby ($0)** — no paid compute required.
+Enterprise topology for AVENZA.
 
-| Piece | Host | Notes |
-|-------|------|--------|
-| Console (`apps/web`) | **Vercel** (Hobby free) | |
-| API (`apps/api`) | **Render** free web | Spins down after ~15m idle |
-| Postgres | Render free Postgres | Expires after **30 days** |
-| Redis | Render free Key Value | Tiny; optional for core settle |
-| Worker | *omitted on free* | Background workers are paid on Render |
-| Settlement | X Layer mainnet `196` | Already deployed |
+| Layer | Platform | Production value |
+|-------|----------|------------------|
+| Console | **Vercel** (`apps/web`) | https://avenzafinance.site |
+| API | **Render** web (`Dockerfile.api`) | https://avenza-api-7p71.onrender.com |
+| Postgres | Render Postgres | wired via `DATABASE_URL` |
+| Redis | Render Key Value | wired via `REDIS_URL` |
+| Settlement | X Layer **196** | [deployments.md](./deployments.md) |
+| DNS | Spaceship → Vercel A/CNAME; optional `api` CNAME → Render | |
 
-Blueprint: [`render.yaml`](../render.yaml) · Vercel: [`apps/web/vercel.json`](../apps/web/vercel.json)
+Blueprint: [`render.yaml`](../render.yaml) · Vercel: [`apps/web/vercel.json`](../apps/web/vercel.json)  
+Env templates: [`apps/api/.env.mainnet.example`](../apps/api/.env.mainnet.example) · [`apps/web/.env.vercel.example`](../apps/web/.env.vercel.example)
 
-If Render still asks for a card: Hobby often needs a payment method on file even at $0. You can instead use **Neon** (free Postgres) + **Upstash** (free Redis) and only create a free Render **Web Service** pointing at `Dockerfile.api`, wiring those URLs as `DATABASE_URL` / `REDIS_URL`.
+```mermaid
+flowchart LR
+  User --> Web["Vercel Next.js console"]
+  Web -->|"HTTPS NEXT_PUBLIC_API_URL"| API["Render Nest API"]
+  API --> PG[(Postgres)]
+  API --> Redis[(Redis)]
+  API -->|"authorize + settle"| XL["X Layer 196"]
+  XL --> Cerebr["TapeOut Cerebr #1"]
+  XL --> Treasury["BusinessTreasury USDC"]
+```
 
 ---
 
-## 1. Render (API + data, free)
+## Architecture rules
 
-1. Push this repo to GitHub (if not already).
-2. [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint** → select the repo → apply `render.yaml` (plans are `free`).
-3. Cancel any old Blueprint that used `starter` / `basic-256mb` — those are paid.
-4. When prompted, fill **sync: false** secrets (generate fresh — never reuse local/dev):
+1. **Web never holds** `RELAYER_PRIVATE_KEY`, `ENCRYPTION_KEY`, or DB credentials.  
+2. **API is the only process** that signs settlement txs and unwraps custody keys.  
+3. **CORS** must list every browser origin (`APP_URL` + `CORS_ORIGINS`).  
+4. **Migrations** run on API boot (`scripts/render-api-start.sh` → `prisma migrate deploy`).  
+5. Prefer **always-on** Render compute for customer-facing settlement (free tier cold-starts ~1m).
+
+---
+
+## Required secrets (Render API)
+
+Generate once; store in a secrets manager; never commit:
 
 ```bash
 openssl rand -hex 32   # JWT_SECRET, SESSION_SECRET, INTERNAL_WEBHOOK_TOKEN, ENCRYPTION_KEY
 openssl rand -base64 48  # AVENZA_FIELD_ENCRYPTION_KEY
 ```
 
-Also set:
+| Key | Purpose |
+|-----|---------|
+| `JWT_SECRET` / `SESSION_SECRET` | Auth |
+| `ENCRYPTION_KEY` | Custody + documents + webhook secrets (64 hex) |
+| `AVENZA_FIELD_ENCRYPTION_KEY` | Business field crypto |
+| `INTERNAL_WEBHOOK_TOKEN` | Worker / internal hooks |
+| `RELAYER_PRIVATE_KEY` | Hot wallet ≠ deployer; OKB for gas |
+| `REGISTRY_OWNER_PRIVATE_KEY` | Registry Ownable writes |
+| `PLATFORM_FEE_RECIPIENT` | Fee destination `0x…` |
+| `APP_URL` | `https://avenzafinance.site` |
+| `CORS_ORIGINS` | `https://avenzafinance.site,https://www.avenzafinance.site` |
+| `API_URL` | Canonical API base (no `/api/v1` suffix) |
 
-| Key | Value |
-|-----|--------|
-| `RELAYER_PRIVATE_KEY` | Funded mainnet OKB hot wallet (≠ deployer) |
-| `REGISTRY_OWNER_PRIVATE_KEY` | Owner/multisig signer (or deployer for first bring-up) |
-| `PLATFORM_FEE_RECIPIENT` | `0x…` fee destination |
-| `APP_URL` | `https://<your-vercel-domain>` (set after Vercel deploy) |
-| `CORS_ORIGINS` | Same Vercel origin (comma-separate www if needed) |
-| `API_URL` | `https://avenza-api.onrender.com` (exact Render URL) |
-
-Public chain/contract env vars are pre-filled in the blueprint.
-
-5. Wait for `avenza-api` health: `GET https://<api-host>/api/v1/health` → `chainId: 196`.
-6. First request after idle may take ~1 minute (free spin-up).
-
-API container runs `prisma migrate deploy` on boot via [`scripts/render-api-start.sh`](../scripts/render-api-start.sh).
-
-Queues/webhooks without a worker still work for interactive settlement; Redis may show `degraded` in health — that is OK for demos.
+Chain and contract addresses are pre-set in `render.yaml`.
 
 ---
 
-## 2. Vercel (web console)
+## Vercel (console)
 
-1. [Vercel](https://vercel.com) → **Add New Project** → import the same GitHub repo.
-2. Settings:
-   - **Root Directory:** `apps/web`
-   - Framework: Next.js (from `vercel.json`)
-   - Node: **22.x**
-3. Environment variables (Production) — see [`apps/web/.env.vercel.example`](../apps/web/.env.vercel.example):
+1. Import GitHub repo · **Root Directory = `apps/web`** (single Next.js service — not multi-service).  
+2. Node **22.x**.  
+3. Production env:
 
 ```bash
-NEXT_PUBLIC_API_URL=https://<avenza-api-host>/api/v1
+NEXT_PUBLIC_API_URL=https://avenza-api-7p71.onrender.com/api/v1
+# When api.avenzafinance.site DNS is live, switch to:
+# NEXT_PUBLIC_API_URL=https://api.avenzafinance.site/api/v1
 NEXT_PUBLIC_XLAYER_CHAIN_ID=196
 NEXT_PUBLIC_USDC_TOKEN_ADDRESS=0xB6CEceAB302E2E4948951eE7843FC24E92933061
 NEXT_PUBLIC_EXPLORER_TX_BASE=https://www.oklink.com/xlayer/tx
@@ -70,38 +81,47 @@ NEXT_PUBLIC_TAPEOUT_PROCESSOR=0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF
 NEXT_PUBLIC_TAPEOUT_CIRCUIT_ID=1
 ```
 
-4. Deploy. Copy the Vercel URL.
-5. Back on Render → set `APP_URL` + `CORS_ORIGINS` to that HTTPS origin → **Manual Deploy** API so CORS picks it up.
+4. Domains: `avenzafinance.site` + `www` → follow Vercel DNS instructions (typically A `@` → `76.76.21.21`, CNAME `www` → `cname.vercel-dns.com`).
 
 ---
 
-## 3. Cross-check
+## DNS (Spaceship)
+
+| Host | Type | Value |
+|------|------|--------|
+| `@` | A | `76.76.21.21` |
+| `www` | CNAME | `cname.vercel-dns.com` |
+| `api` | CNAME | `avenza-api-7p71.onrender.com` |
+
+After `api` propagates, add custom domain on Render and update `NEXT_PUBLIC_API_URL` / `API_URL`.
+
+---
+
+## Health & acceptance
 
 ```bash
-curl -s https://<api-host>/api/v1/health
-# expect chainId 196, database ok, rpc ok
+curl -s https://avenza-api-7p71.onrender.com/api/v1/health
+# expect: chainId 196, database ok, rpc ok
 ```
 
-- Console login / register against production API.
-- Do **not** run `db:seed` on production.
-- Fund relayer with OKB; deposit **native** USDC into `BusinessTreasury`.
-- Smoke: 1 USDC authorize → settle → OKLink mainnet links.
+- [ ] Register / login on https://avenzafinance.site  
+- [ ] CORS allows console origin (no browser CORS errors)  
+- [ ] Relayer funded with OKB  
+- [ ] Org vault funded with **native** USDC  
+- [ ] 1 USDC smoke settle visible on OKLink  
 
-Full ops checklist: [mainnet-go-live.md](./mainnet-go-live.md) · addresses: [deployments.md](./deployments.md)
+See [mainnet-go-live.md](./mainnet-go-live.md).
 
 ---
 
-## 4. Local Docker smoke (optional)
+## Hardening (enterprise)
 
-```bash
-docker build -f Dockerfile.api -t avenza-api .
-docker build -f Dockerfile.worker -t avenza-worker .
-```
-
----
-
-## Notes
-
-- Render free/starter web services may cold-start; use a paid plan if you need always-on settlement.
-- `RELAYER_PRIVATE_KEY` only on Render — never in Vercel.
-- Document uploads use `DOCUMENT_ROOT` inside the API container (ephemeral). For durable files, point storage at an object store later.
+| Item | Guidance |
+|------|----------|
+| Compute | Upgrade Render web off free tier for always-on API |
+| Postgres | Paid Render / Neon with backups; free Render DB expires in 30 days |
+| Documents | Move `DOCUMENT_ROOT` to object storage (S3-compatible) |
+| Keys | Relayer in KMS/HSM; rotate JWT/encryption on schedule |
+| Ownership | Transfer Ownable / `EmergencyControl` to multisig |
+| Observability | Log drains + uptime checks on `/api/v1/health` |
+| Worker | Paid Render worker or separate process for BullMQ when volume grows |

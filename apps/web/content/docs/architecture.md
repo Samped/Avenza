@@ -2,19 +2,22 @@
 
 ## Overview
 
-AVENZA is a monorepo financial-operations stack. The **web console** talks to a **NestJS API**. The API persists workflow state in **Postgres**, optionally enqueues **BullMQ** jobs, evaluates policy with **TapeOut** on **X Layer**, and settles through **Foundry-deployed contracts** holding **native USDC**.
+AVENZA is a monorepo financial-operations stack. The **web console** (Vercel) talks to a **NestJS API** (Render). The API persists workflow state in **Postgres**, optionally enqueues **BullMQ** jobs, evaluates policy with **TapeOut Cerebr** on **X Layer mainnet**, and settles through **Foundry-deployed contracts** holding **native USDC**.
+
+Production hosts: [hosting-render-vercel.md](./hosting-render-vercel.md) · addresses: [deployments.md](./deployments.md)
 
 ```text
 ┌─────────────┐     JWT + x-organization-id      ┌──────────────────┐
 │  Next.js    │ ───────────────────────────────► │  NestJS API      │
-│  console    │                                  │  + Prisma        │
+│  console    │     (avenzafinance.site)         │  + Prisma        │
+│  (Vercel)   │                                  │  (Render)        │
 └─────────────┘                                  └────────┬─────────┘
                                                           │
                     ┌─────────────────────────────────────┼──────────────────────────┐
                     ▼                                     ▼                          ▼
              ┌────────────┐                      ┌──────────────┐            ┌──────────────┐
-             │ Postgres   │                      │ TapeOut eval │            │ X Layer txs  │
-             │ (workflow) │                      │ (view call)  │            │ Auth+Treasury│
+             │ Postgres   │                      │ TapeOut eval │            │ X Layer 196  │
+             │ Redis      │                      │ Cerebr #1    │            │ Auth+Treasury│
              └────────────┘                      └──────────────┘            └──────────────┘
 ```
 
@@ -77,7 +80,7 @@ Payment creation requires an `idempotencyKey` scoped per organization to prevent
 | Mode | When |
 |------|------|
 | `onchain` | `PAYMENT_AUTHORIZATION_ADDRESS`, `TREASURY_ADDRESS`, and `RELAYER_PRIVATE_KEY` set |
-| `simulated` | `ALLOW_SIMULATED_SETTLEMENT=true` and contracts not fully configured |
+| `blocked` | Contracts or relayer missing — payments cannot settle |
 | `blocked` | Neither path available — execute fails closed |
 
 Simulation never silently pretends to be a mainnet success without the explicit flag.

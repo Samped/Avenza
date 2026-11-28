@@ -84,12 +84,12 @@ TAPEOUT_PROCESSOR_ADDRESS=0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF
 TAPEOUT_PAYMENT_LIMIT_CIRCUIT_ID=1
 TAPEOUT_EVAL_CHAIN_ID=196
 TAPEOUT_RPC_URL=https://rpc.xlayer.tech
-ALLOW_TAPEOUT_LOCAL_FALLBACK=true   # set false in strict mode
+ALLOW_TAPEOUT_LOCAL_FALLBACK=false   # required in production / mainnet
 ```
 
-Production settlement uses mainnet (`XLAYER_CHAIN_ID=196`) with the same Cerebr processor as TapeOut eval. Testnet settlement (`1952`) remains optional for isolated experiments and uses a local MockTapeOutProcessor.
+Production settlement uses mainnet (`XLAYER_CHAIN_ID=196`) with the **same Cerebr processor** for API eval and on-chain `PaymentAuthorization` re-eval. Testnet (`1952`) is optional for isolated experiments and uses a local `MockTapeOutProcessor` for settlement re-eval only.
 
-**Live settlement addresses:** [deployments.md](./deployments.md) (PaymentAuthorization `0xE3F25b5e…`, BusinessTreasury `0x96778c36…`, and the full registry).
+**Live settlement addresses:** [deployments.md](./deployments.md) — PaymentAuthorization `0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA`, BusinessTreasury `0x951adC47425FB4441A3D057d3e10Fa5D4eC27Ed1`.
 
 ## Console surfaces
 

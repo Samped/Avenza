@@ -1,10 +1,10 @@
 # Smart contracts
 
-Foundry project: [`contracts/`](../../../contracts)
+Foundry project: [`contracts/`](../contracts)
 
 Solidity **0.8.24**, optimizer **200** runs, **`via_ir`** enabled.
 
-**Live addresses:** see repository [`docs/deployments.md`](../../../docs/deployments.md) (X Layer mainnet `196`).
+**Live addresses:** [Deployments](./deployments.md) (X Layer mainnet `196`).
 
 ## Contract catalog
 
@@ -21,7 +21,7 @@ Solidity **0.8.24**, optimizer **200** runs, **`via_ir`** enabled.
 | `ITapeOutProcessor` | `interfaces/ITapeOutProcessor.sol` | `eval(uint256,bytes) returns (bytes)` |
 | `MockUSDC` / `MockTapeOutProcessor` | `mocks/` | Local tests, Anvil, and testnet settlement re-eval |
 
-## X Layer testnet deployment
+## X Layer mainnet deployment (`196`)
 
 | Contract | Address |
 |----------|---------|
@@ -29,15 +29,18 @@ Solidity **0.8.24**, optimizer **200** runs, **`via_ir`** enabled.
 | OrganizationRegistry | `0xD2445389196f2c502AB5ec6f49a90cc04BB71ff5` |
 | VendorRegistry | `0x3dE7a4C348F7415087a9Cf58FBC57256bAF1eb4b` |
 | PaymentPolicyRegistry | `0x0Af7a5DDE4f2B30772eE60F80EfD516A94C56A52` |
-| PaymentAuthorization | `0xE3F25b5e9Da3dFA72C0a12f05fd45cc0dD4243dD` |
-| PaymentRouter | `0xF10cDEB14604F6311195dA90B6076713f7f42f14` |
-| BusinessTreasury | `0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA` |
-| AuditRegistry | `0x79Be215ec0478D616fC2704370c3590f323ef599` |
+| ControlsRegistry | `0xF10cDEB14604F6311195dA90B6076713f7f42f14` |
+| PaymentAuthorization | `0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA` |
+| PaymentRouter | `0xE3F25b5e9Da3dFA72C0a12f05fd45cc0dD4243dD` |
+| BusinessTreasury | `0x951adC47425FB4441A3D057d3e10Fa5D4eC27Ed1` |
+| AuditRegistry | `0xEc114e0B3d39CaFEBE9d9aC25932A75958A7fbDC` |
 
 - **Native USDC:** `0xB6CEceAB302E2E4948951eE7843FC24E92933061`  
+- **TapeOut:** Cerebr `0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF` circuit `#1`  
 - **Organization ID:** `0x603fd1000e3f9b350efdfbeaad5864a151b4bdac12228b5056569a9b2478f82a`  
-- **Policy version:** `2`  
-- **Verification:** Sourcify `exact_match` — https://repo.sourcify.dev/196/
+- **Policy version:** `1`  
+- **Full book + env mapping:** [deployments.md](./deployments.md)  
+- **Verification:** `./scripts/verify-xlayer.sh` (Sourcify)
 
 ## Authorization flow
 
@@ -73,17 +76,32 @@ cd contracts
 forge test
 ```
 
+Coverage includes authorize + pay, replay, insufficient approvals, pause, double execute, and TapeOut-fail blocks auth.
+
 ## Deploy
 
 ```bash
-export DEPLOYER_PRIVATE_KEY=0x...
+export DEPLOYER_PRIVATE_KEY=0x...   # funded OKB; never commit
 export XLAYER_CHAIN_ID=196
 export XLAYER_RPC_URL=https://testrpc.xlayer.tech/terigon
 export USDC_TOKEN_ADDRESS=0xB6CEceAB302E2E4948951eE7843FC24E92933061
 ./scripts/deploy-xlayer.sh
 ```
 
-On testnet, settlement re-eval uses a chain-local TapeOut-compatible processor. API TapeOut eval uses mainnet Cerebr (`TAPEOUT_EVAL_CHAIN_ID=196`).
+- Production-shaped: [`script/Deploy.s.sol`](../contracts/script/Deploy.s.sol)  
+- Helper: [`scripts/deploy-xlayer.sh`](../scripts/deploy-xlayer.sh)  
+- Local Anvil: [`script/DeployLocal.s.sol`](../contracts/script/DeployLocal.s.sol)  
+
+On testnet, deploy binds a settlement-compatible TapeOut processor for on-chain re-eval. API TapeOut eval continues to use mainnet Cerebr (`TAPEOUT_EVAL_CHAIN_ID=196`). See [tapeout-xlayer.md](./tapeout-xlayer.md).
+
+## Integration with the API
+
+[`apps/api/src/payments/settlement.ts`](../apps/api/src/payments/settlement.ts):
+
+1. `simulateContract(authorize)` → capture `authorizationId`  
+2. `writeContract(authorize)`  
+3. `writeContract(executeAuthorizedPayment)` with that id  
+4. Assert native USDC via `assertNativeUsdc`
 
 ## Security notes
 

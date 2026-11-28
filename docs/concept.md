@@ -5,10 +5,11 @@
 | | |
 |---|---|
 | Category | FinTech · B2B Payments · Smart Contracts · Stablecoin Settlement |
-| Chain | X Layer mainnet 196 (testnet 1952 optional) |
+| Chain | X Layer mainnet **196** (testnet 1952 optional) |
 | Asset | Native USDC only (not bridged) |
-| Policy | TapeOut circuits + Solidity enforcement |
-| Status | Blueprint v1.0 — aligned with the running console |
+| Policy | TapeOut Cerebr circuit `#1` + Solidity enforcement |
+| Console | https://avenzafinance.site |
+| Status | Production mainnet settlement stack live |
 
 > Full thesis: accounts payable as a control layer between ERP and settlement. AI assists extraction; humans verify; TapeOut evaluates; contracts authorize; USDC moves; audit closes the loop.
 
@@ -32,7 +33,7 @@ A business must define **who** it pays, **how much**, **under what conditions**,
 
 Create org → invite finance users → register supplier + destination → upload/extract/verify invoice → approval tiers → TapeOut eval → authorize → settle USDC → confirm → reconcile → audit.
 
-Negative paths enforced: expired approvals, unverified vendor/destination, policy fail, double-pay guards, failed txs never marked COMPLETED, simulated receipts only for `sim-tx` hashes.
+Negative paths enforced: expired approvals, unverified vendor/destination, policy fail, double-pay guards, failed txs never marked COMPLETED. Simulated settlement is removed.
 
 ## Architecture principles
 

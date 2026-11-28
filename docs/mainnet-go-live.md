@@ -1,6 +1,6 @@
-# Mainnet go-live runbook (X Layer 196) — enterprise
+# Mainnet go-live — X Layer 196
 
-**Do not accept third-party USDC until every gate below is checked.**
+Enterprise cutover and ongoing production gates for AVENZA.
 
 | Item | Value |
 |------|--------|
@@ -9,145 +9,114 @@
 | TapeOut Cerebr | `0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF` |
 | Circuit | `#1` — AND(`amountOk`, `budgetOk`) |
 | Explorer | https://www.oklink.com/xlayer |
+| Console | https://avenzafinance.site |
+| API | https://avenza-api-7p71.onrender.com |
 
-Template env: [`apps/api/.env.mainnet.example`](../apps/api/.env.mainnet.example)  
-Ops checklist: [`docs/ops/mainnet-go-live-checklist.md`](./ops/mainnet-go-live-checklist.md)  
-Build X pack: [`docs/hackathon/BUILD_X_SUBMISSION.md`](./hackathon/BUILD_X_SUBMISSION.md)  
-Preflight: `./scripts/mainnet-preflight.sh` · Fly secrets: `./scripts/fly-set-secrets.sh .env.mainnet`
+**Settlement contracts are deployed.** Canonical book: [deployments.md](./deployments.md) · manifest: `docs/hackathon/deployed-mainnet.json` (`status: deployed`).  
+Hosting: [hosting-render-vercel.md](./hosting-render-vercel.md) · Secrets template: `apps/api/.env.mainnet.example`  
+Preflight: `./scripts/mainnet-preflight.sh`
 
 ---
 
-## 0. Code gates (enforced in repo)
+## 0. Code gates (enforced)
 
 - [x] No second payment after `PAYMENT_FAILED` — retry `/execute` on same id  
 - [x] `fundingWalletKeyEnc` stripped from org API responses  
-- [x] Production secrets required; TapeOut local fallback forbidden  
-- [x] Mainnet boot refuses wrong USDC, test RPC, missing contracts/relayer, confirmations &lt; 3  
-- [x] `VendorRegistry` eligibility when wired; treasury-only `consume`  
-- [x] Pending payees cannot settle until verified  
+- [x] Production secrets required; TapeOut local fallback forbidden on mainnet  
+- [x] Boot refuses wrong USDC, test RPC, missing contracts/relayer, confirmations &lt; 3  
+- [x] `VendorRegistry` eligibility when wired  
 - [x] Partner API SoD (`payments:settle` separate; cannot decide approvals)  
 - [x] Dual-control respected in console  
-- [x] Swagger off in production unless `ENABLE_SWAGGER=true`  
+- [x] Swagger off unless `ENABLE_SWAGGER=true`  
 - [x] `db:seed` blocked on mainnet production unless `ALLOW_MAINNET_SEED=yes`  
-- [x] Deploy script requires distinct deployer vs relayer on 196  
+- [x] Deploy requires distinct deployer vs relayer on 196  
+- [x] Mainnet contracts live + policy bound to Cerebr `#1`  
 
 ---
 
-## 1. Wallets & custody (before any deploy)
+## 1. Custody model
 
-1. **Deployer** — cold/hardware preferred; funds OKB for contract deploy only.  
-2. **Relayer** — separate hot wallet; OKB for gas only; **never** the deployer key.  
-3. **Ops multisig** — will own `EmergencyControl` + Ownable after deploy.  
-4. Confirm legal posture for **custodial** funding wallets before third-party funds.
+| Wallet | Role | Fund with |
+|--------|------|-----------|
+| **Deployer** | Contract Ownable / registry owner (cold preferred) | OKB for deploy / ownership txs |
+| **Relayer** | Hot gas payer for authorize + settle | OKB only — never customer USDC |
+| **Platform fee recipient** | `collectFee` destination | — |
+| **Org funding wallet** | Custodial deposit into `BusinessTreasury` | Native USDC (+ dust OKB if needed) |
+| **Ops multisig** | Target owner of `EmergencyControl` + Ownable | — |
 
-Generate app secrets (new — never reuse testnet):
-
-```bash
-openssl rand -hex 32   # JWT_SECRET / SESSION_SECRET / INTERNAL_WEBHOOK_TOKEN
-openssl rand -hex 32   # ENCRYPTION_KEY (64 hex)
-openssl rand -base64 48  # AVENZA_FIELD_ENCRYPTION_KEY
-```
+Confirm legal posture for **custodial** funding wallets before accepting third-party USDC.
 
 ---
 
-## 2. Deploy contracts
+## 2. Contracts (already live)
+
+Redeploy only if intentionally replacing the stack:
 
 ```bash
 export CONFIRM_MAINNET_DEPLOY=yes
 export XLAYER_CHAIN_ID=196
 export XLAYER_RPC_URL=https://rpc.xlayer.tech
 export USDC_TOKEN_ADDRESS=0xB6CEceAB302E2E4948951eE7843FC24E92933061
-export TAPEOUT_PROCESSOR_ADDRESS=0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF
-export DEPLOYER_PRIVATE_KEY=0x…   # cold
-export RELAYER_PRIVATE_KEY=0x…    # hot, different
+export SETTLEMENT_TAPEOUT_PROCESSOR_ADDRESS=0xB04EB79D1A5EECaabAAfF7B77d7c27578EE693FF
+# distinct DEPLOYER_PRIVATE_KEY + RELAYER_PRIVATE_KEY
 ./scripts/deploy-xlayer.sh
 ./scripts/verify-xlayer.sh
 ```
 
-Copy addresses into Fly secrets / production env. Transfer Ownable → multisig. Document pause: `EmergencyControl.pause()`.
+Post-deploy: transfer Ownable → multisig; document pause via `EmergencyControl.pause()`.
 
 ---
 
-## 3. Data plane & API host
+## 3. Application plane
 
-| Piece | Recommendation |
-|-------|----------------|
-| Postgres | Render Postgres (or Neon) — **no** `db:seed` |
-| Redis | Render Key Value (or Upstash) |
-| API + worker | **Render** Blueprint [`render.yaml`](../render.yaml) |
-| Web | **Vercel** (`apps/web`) — see [hosting-render-vercel.md](./hosting-render-vercel.md) |
+| Piece | Target |
+|-------|--------|
+| API + Postgres + Redis | Render (`render.yaml`) |
+| Console | Vercel · Root `apps/web` · domain `avenzafinance.site` |
+| CORS | `APP_URL` + `CORS_ORIGINS` = console HTTPS origins |
 
 ```bash
-# Against production DATABASE_URL only
-npm run db:generate
-npm run db:push
-# optional field migration after setting AVENZA_FIELD_ENCRYPTION_KEY
-npm run encrypt:fields -w @avenza/api
 ./scripts/mainnet-preflight.sh
+curl -s https://avenza-api-7p71.onrender.com/api/v1/health
+./scripts/tapeout-verify.sh
 ```
 
-Fly secrets (example):
-
-```bash
-fly secrets set \
-  DATABASE_URL=… REDIS_URL=… \
-  JWT_SECRET=… SESSION_SECRET=… \
-  ENCRYPTION_KEY=… AVENZA_FIELD_ENCRYPTION_KEY=… \
-  INTERNAL_WEBHOOK_TOKEN=… \
-  RELAYER_PRIVATE_KEY=… \
-  APP_URL=https://YOUR_VERCEL_HOST \
-  PAYMENT_AUTHORIZATION_ADDRESS=… TREASURY_ADDRESS=… \
-  # …remaining contract addresses
-```
+**Never** `db:seed` on production.
 
 ---
 
-## 4. Re-onboard orgs (testnet state does not carry over)
+## 4. Customer onboarding
 
-1. Register production admin; create workspace (new funding wallet).  
-2. On-chain org + policy with **non-zero Cerebr processor** + controls.  
-3. Register & **verify** payees.  
-4. Fund funding wallet: tiny **native USDC** + OKB → deposit to vault.  
+1. Register admin → create workspace (new funding wallet).  
+2. Sync on-chain org + policy (Cerebr processor, circuit `#1`) + controls.  
+3. Register & **verify** payees before settle.  
+4. Fund funding wallet with **native** USDC → deposit to vault.  
+5. Keep relayer OKB topped up.
 
 ---
 
-## 5. Smoke + pause (mandatory)
+## 5. Smoke + incident drill (mandatory before volume)
 
-1. Payable for **1 USDC** (or minimum you accept).  
+1. Payable for **1 USDC** (or agreed minimum).  
 2. Dual-control approve if required.  
 3. Authorize → execute → ≥3 confirmations → reconcile.  
-4. Confirm OKLink mainnet links.  
-5. Empty-vault failure → fund → **retry `/execute` on same payment id**.  
-6. Multisig `pause()` → confirm blocked → `unpause()`.  
+4. Confirm OKLink mainnet links in console.  
+5. Pause drill: `EmergencyControl.pause()` blocks deposit/settle; unpause after.
 
 ---
 
-## 6. Fees (how AVENZA makes money)
+## 6. Remaining enterprise backlog
 
-On each successful settle the org vault is debited:
-
-| Debit | Source |
-|-------|--------|
-| Vendor amount | Payee |
-| Platform fee | `PLATFORM_FEE_BPS` + `PLATFORM_FEE_FLAT_MINOR` → `PLATFORM_FEE_RECIPIENT` |
-| Gas recovery | `GAS_RECOVERY_USDC_MINOR` → same recipient |
-
-Relayer still pays **OKB** gas; businesses repay you in **USDC**. Requires treasury `collectFee` (redeploy/upgrade suite if your live treasury predates this function).
-
-Suggested start: `PLATFORM_FEE_BPS=30`, flat `50000` ($0.05), gas recovery `150000` ($0.15).
-
-## 7. Enterprise ops checklist
-
-- [ ] Relayer OKB top-up alerting  
-- [ ] Vault USDC balance alerting (must cover **payment + fees**)  
-- [ ] Fee recipient wallet monitored  
-- [ ] Log redaction (no raw keys / full memos in logs)  
-- [ ] Incident runbook: pause → revoke partner keys → rotate JWT/relayer  
-- [ ] Backup Postgres; encryption key escrow procedure  
-- [ ] CORS locked to console HTTPS origin(s)  
+- [ ] Independent smart-contract review  
+- [ ] Relayer key in HSM/KMS + rotation runbook  
+- [ ] Ownable / EmergencyControl → production multisig  
+- [ ] Durable object storage for invoice documents  
+- [ ] Always-on API compute (leave free tier)  
+- [ ] Postgres backups + PITR  
+- [ ] Jurisdiction review (custody / money transmission)  
 
 ---
 
-## 8. Compliance reminder
+## Disclosure
 
-Funding wallets are **custodial** (API holds encrypted keys). Confirm money-transmission / custody obligations before accepting third-party USDC. Disclose platform and gas-recovery fees in your customer terms.
+Settlement amounts and destinations are **public on X Layer**. Confidentiality is off-chain (AES-256-GCM). Platform fee + gas recovery debit the org vault in USDC; the relayer still pays OKB gas. Disclose fees in customer terms.

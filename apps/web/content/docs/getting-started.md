@@ -2,6 +2,8 @@
 
 From a clean checkout to a running AVENZA API + web console on your machine.
 
+**Production:** https://avenzafinance.site · API https://avenza-api-7p71.onrender.com — see [hosting-render-vercel.md](./hosting-render-vercel.md).
+
 ## Prerequisites
 
 | Tool | Notes |
@@ -137,7 +139,6 @@ Native USDC:
 
 - Mainnet `196`: `0xB6CEceAB302E2E4948951eE7843FC24E92933061`
 - Testnet `1952`: `0xDec90b78111Ba2fc6FC6d84d8B9ec159A2d4b9B3`
-- Mainnet `196`: `0xB6CEceAB302E2E4948951eE7843FC24E92933061`
 
 ### TapeOut
 
@@ -180,7 +181,9 @@ curl -s http://localhost:3001/api/v1/health
 
 ## Next steps
 
+- [Hosting (Render + Vercel)](./hosting-render-vercel.md) — production topology  
 - [Product guide](./product-guide.md) — operate the console  
 - [Deployments](./deployments.md) — live X Layer addresses  
 - [Security](./security.md) — encryption + mainnet gates  
 - [Mainnet go-live](./mainnet-go-live.md) — production checklist  
+

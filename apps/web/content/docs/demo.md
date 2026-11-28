@@ -1,60 +1,47 @@
-# Local demo runbook
+# Demo runbook
 
-## Prerequisites
+Controlled paths for local development and production smoke on X Layer mainnet.
+
+## Local (seeded)
 
 Follow [getting-started.md](./getting-started.md) through seed + API + web.
 
-```bash
-# Recommended for local-only settlement without deployed contracts
-grep ALLOW_SIMULATED_SETTLEMENT .env || echo 'ALLOW_SIMULATED_SETTLEMENT=true' >> .env
-```
-
-## Seed users
-
-Set `DEMO_SEED_PASSWORD` in `.env`, then seed. Sign in with:
-
 | Email | Role |
 |-------|------|
-| admin@avenza.demo | admin |
-| approver@avenza.demo | approver |
-| payer@avenza.demo | payer |
+| `admin@avenza.demo` | admin |
+| `approver@avenza.demo` | approver |
+| `payer@avenza.demo` | payer |
 
-Password = your `DEMO_SEED_PASSWORD` (not stored in git).
-
-## Scripted acceptance
+Password = `DEMO_SEED_PASSWORD` from `.env` (never commit).
 
 ```bash
 ./scripts/smoke-mvp.sh
-```
-
-## TapeOut check
-
-```bash
 ./scripts/tapeout-verify.sh
 ```
 
-## Manual console path
+### Console path
 
 1. Sign in as admin.  
-2. Confirm seeded supplier / destination.  
-3. Create → extract/verify invoice (or use API).  
-4. Submit approval; approve.  
-5. Policies: confirm processor + circuit `#1`.  
-6. Payments: authorize & execute.  
-7. Treasury / audit: inspect mode and events.  
+2. Confirm seeded payee / destination.  
+3. Create → extract/verify invoice.  
+4. Submit approval; approve as approver.  
+5. **Controls / Policies:** processor Cerebr + circuit `#1`.  
+6. **Payments:** authorize & execute (requires contracts + funded relayer/vault for live chain).  
+7. Inspect audit + OKLink links when on-chain.
 
-## On-chain mainnet
+## Production smoke (avenzafinance.site)
 
-Contracts are deployed on X Layer mainnet (`196`). Addresses: [deployments.md](./deployments.md).
+Prerequisites: [hosting-render-vercel.md](./hosting-render-vercel.md), [deployments.md](./deployments.md).
 
-1. Confirm `.env` contract addresses + `RELAYER_PRIVATE_KEY`  
-2. Obtain mainnet native USDC (`0xB6CEce…`)  
-3. Deposit into `BusinessTreasury` (`0x96778c369D85aaCCBF6DE0BcD0671B048E16E5CA`)  
-4. Set `ALLOW_SIMULATED_SETTLEMENT=false`  
-5. Re-run smoke / console payment against live authorization  
+1. Open https://avenzafinance.site → Create account (or admin login).  
+2. Create workspace; verify payee.  
+3. Confirm API health: `curl -s https://avenza-api-7p71.onrender.com/api/v1/health` → `chainId: 196`.  
+4. Fund relayer with OKB; deposit **native** USDC into `BusinessTreasury` (`0x951adC47425FB4441A3D057d3e10Fa5D4eC27Ed1`).  
+5. Run a **1 USDC** payable through approve → authorize → settle.  
+6. Confirm ≥3 confirmations and OKLink mainnet tx links.  
 
-Redeploy only if needed: `./scripts/deploy-xlayer.sh` 
+**Do not** run `db:seed` against production.
 
 ## Security gate
 
-Do not enable mainnet customer funds until [security.md](./security.md) checklist is complete.
+Do not invite external businesses with real funds until [security.md](./security.md) remaining enterprise items are accepted by stakeholders.

@@ -1,45 +1,53 @@
 # AVENZA documentation
 
-Professional reference for operators, integrators, and contributors.
+Enterprise reference for operators, security reviewers, integrators, and contributors.
 
-**In the product:** signed-in console → **Docs** (`/app/docs`).  
-**Public:** `/docs` on the web app.  
-**Repo:** files in this folder (synced into `apps/web/content/docs` for the UI).
+| Surface | URL |
+|---------|-----|
+| Production console | https://avenzafinance.site |
+| Production API | https://avenza-api-7p71.onrender.com |
+| In-app docs | `/app/docs` (signed in) · `/docs` (public) |
+| Repo docs | this folder (synced to `apps/web/content/docs`) |
+
+**Production settlement:** X Layer mainnet (`196`), native USDC, TapeOut Cerebr circuit `#1`.  
+**Live addresses:** [deployments.md](./deployments.md)
 
 ## Start here
 
-1. [Getting started](./getting-started.md) — install, environment, run locally  
-2. [Product guide](./product-guide.md) — what each console screen does  
-3. [Architecture](./architecture.md) — trust boundaries and data flow  
-4. [Concept / blueprint](./concept.md) — product thesis and programmable AP architecture  
+1. [Getting started](./getting-started.md) — local install  
+2. [Hosting (Render + Vercel)](./hosting-render-vercel.md) — production topology  
+3. [Mainnet go-live](./mainnet-go-live.md) — cutover & ops gates  
+4. [Product guide](./product-guide.md) — console modules  
+5. [Architecture](./architecture.md) — trust boundaries  
+6. [Security](./security.md) — threat model & controls  
 
 ## Technical references
 
 | Document | Audience |
 |----------|----------|
-| [API](./api.md) | Backend / frontend integrators |
+| [API](./api.md) | Backend / Partner API integrators |
 | [Smart contracts](./contracts.md) | Protocol / Foundry engineers |
-| [Deployments](./deployments.md) | Live X Layer addresses & verification |
-| [TapeOut & X Layer](./tapeout-xlayer.md) | On-chain policy & settlement |
-| [Security](./security.md) | Security & compliance review |
-| [Mainnet go-live](./mainnet-go-live.md) | Production cutover (chain 196) |
-| [hosting-render-vercel.md](./hosting-render-vercel.md) | Render API/worker + Vercel console |
+| [Deployments](./deployments.md) | Live X Layer address book |
+| [TapeOut & X Layer](./tapeout-xlayer.md) | On-chain policy evaluation |
+| [Concept](./concept.md) | Product thesis |
 | [MVP acceptance](./mvp-acceptance.md) | QA / release gate |
-| [Demo runbook](./demo.md) | Local end-to-end demo |
-| [Development](./development.md) | Contributors: workspaces, tests, code map |
+| [Demo runbook](./demo.md) | Controlled demo paths |
+| [Development](./development.md) | Contributors |
 
 ## Design principles
 
-1. **Separation of duties** — extraction ≠ approval ≠ authorization ≠ settlement.  
-2. **On-chain truth for policy gates** — TapeOut `eval` is deterministic and publicly re-runnable.  
+1. **Separation of duties** — extract ≠ approve ≠ authorize ≠ settle.  
+2. **On-chain policy truth** — TapeOut `eval` is deterministic and publicly re-runnable.  
 3. **Independent Solidity enforcement** — the relayer cannot invent an authorization.  
 4. **Native USDC only** — bridged USDC is rejected by allowlist checks.  
-5. **Off-chain privacy** — invoice PDFs and PII stay in private storage; chain sees commitments and identifiers.
+5. **Off-chain confidentiality** — AES-GCM for custody keys, fields, documents; chain sees commitments, amounts, and destinations (public by design).  
+6. **Fail closed** — production/mainnet boot refuses missing secrets, wrong USDC, or TapeOut local fallback.
 
-## Support paths in-repo
+## Operator tooling
 
-- Smoke: `./scripts/smoke-mvp.sh`  
-- TapeOut verify: `./scripts/tapeout-verify.sh`  
-- Contract tests: `cd contracts && forge test`  
-- OpenAPI UI: `http://localhost:3001/api/docs` when the API is running  
-- In-app docs: `http://localhost:3000/app/docs`  
+```bash
+./scripts/tapeout-verify.sh          # Cerebr circuit #1 live eval
+./scripts/mainnet-preflight.sh       # env + chain gates
+cd contracts && forge test           # settlement invariants
+curl -s https://avenza-api-7p71.onrender.com/api/v1/health
+```
